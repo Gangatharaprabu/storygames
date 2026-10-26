@@ -1,0 +1,54 @@
+{
+  "id": "harbour",
+  "title": "The Harbour at Dusk",
+  "background": "art/harbour.svg",
+  "layers": [
+    { "id": "tomo", "image": "art/tomo-standing.svg", "rect": { "x": 640, "y": 1180, "w": 180, "h": 380 } },
+    { "id": "box-open", "image": "art/box-open.svg", "rect": { "x": 580, "y": 1650, "w": 170, "h": 160 }, "if": { "solved": "tackle-box" } }
+  ],
+  "onEnter": [
+    { "do": "dialogue", "knot": "arrival", "if": { "not": { "flag": "arrived" } } },
+    { "do": "set", "flag": "arrived" }
+  ],
+  "hotspots": [
+    {
+      "id": "tomo",
+      "label": "Tomo, the ferryman",
+      "rect": { "x": 630, "y": 1170, "w": 200, "h": 400 },
+      "actions": [
+        { "do": "dialogue", "knot": "tomo_rope", "if": { "has": "rope" } },
+        { "do": "dialogue", "knot": "tomo", "if": { "not": { "has": "rope" } } }
+      ]
+    },
+    {
+      "id": "ferry",
+      "label": "The chained ferry",
+      "rect": { "x": 80, "y": 1240, "w": 500, "h": 220 },
+      "actions": [
+        { "do": "dialogue", "knot": "ferry_locked", "if": { "not": { "flag": "talked_to_tomo" } } },
+        { "do": "puzzle", "puzzle": "ferry-lock", "if": { "flag": "talked_to_tomo" } }
+      ]
+    },
+    {
+      "id": "tackle-box",
+      "label": "Tomo's tackle box",
+      "rect": { "x": 570, "y": 1690, "w": 190, "h": 130 },
+      "if": { "all": [{ "flag": "helped_ferryman" }, { "not": { "solved": "tackle-box" } }] },
+      "actions": [{ "do": "puzzle", "puzzle": "tackle-box" }]
+    },
+    {
+      "id": "lantern",
+      "label": "The old lantern",
+      "rect": { "x": 870, "y": 940, "w": 140, "h": 170 },
+      "if": { "flag": "knows_code" },
+      "actions": [{ "do": "dialogue", "knot": "lantern" }]
+    },
+    {
+      "id": "noticeboard",
+      "label": "Noticeboard",
+      "rect": { "x": 110, "y": 1550, "w": 280, "h": 190 },
+      "if": { "all": [{ "flag": "talked_to_tomo" }, { "not": { "flag": "helped_ferryman" } }] },
+      "actions": [{ "do": "dialogue", "knot": "notice" }]
+    }
+  ]
+}

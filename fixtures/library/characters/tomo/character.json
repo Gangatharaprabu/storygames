@@ -1,0 +1,17 @@
+{
+  "id": "tomo",
+  "name": "Tomo",
+  "color": "#f2a65a",
+  "bio": "The old ferryman. Gruff, fair, and fond of his nets.",
+  "variants": {
+    "default": {
+      "defaultExpression": "neutral",
+      "portraits": {
+        "neutral": "portraits/neutral.svg",
+        "happy": "portraits/happy.svg",
+        "grumpy": "portraits/grumpy.svg",
+        "surprised": "portraits/surprised.svg"
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "at-sea",
+  "title": "Crossing",
+  "background": "art/at-sea.svg",
+  "onEnter": [
+    { "do": "dialogue", "knot": "farewell" },
+    { "do": "end" }
+  ]
+}

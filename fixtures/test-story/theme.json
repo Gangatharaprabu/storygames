@@ -1,0 +1,16 @@
+{
+  "colors": {
+    "background": "#1d1a2f",
+    "surface": "#2b2745",
+    "text": "#f6efe6",
+    "muted": "#b9b0c9",
+    "accent": "#f2a65a",
+    "accentText": "#1d1a2f"
+  },
+  "fonts": {
+    "body": "'Trebuchet MS', system-ui, sans-serif",
+    "display": "Georgia, 'Times New Roman', serif"
+  },
+  "radius": 18,
+  "colorGrade": "saturate(1.05)"
+}

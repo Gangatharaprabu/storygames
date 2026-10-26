@@ -1,0 +1,15 @@
+{
+  "id": "ferry-lock",
+  "type": "combination-lock",
+  "presentation": "fullscreen",
+  "title": "The Ferry Lock",
+  "prompt": "A heavy brass lock with three dials holds the chain.",
+  "config": { "dials": 3, "solution": ["3", "1", "4"] },
+  "skin": { "body": "art/lock-body.svg" },
+  "hints": [
+    "Someone around the harbour knows the code.",
+    "Tomo's lantern, or the noticeboard, might help.",
+    "Three, one, four."
+  ],
+  "onSolve": [{ "do": "goto", "scene": "at-sea" }]
+}

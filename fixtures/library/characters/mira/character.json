@@ -1,0 +1,17 @@
+{
+  "id": "mira",
+  "name": "Mira",
+  "color": "#7fd1c7",
+  "bio": "A young traveller on her way to the island her mother came from.",
+  "variants": {
+    "traveller": {
+      "defaultExpression": "neutral",
+      "portraits": {
+        "neutral": "portraits/neutral.svg",
+        "happy": "portraits/happy.svg",
+        "worried": "portraits/worried.svg",
+        "thinking": "portraits/thinking.svg"
+      }
+    }
+  }
+}

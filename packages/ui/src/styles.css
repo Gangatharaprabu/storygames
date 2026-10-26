@@ -1,0 +1,190 @@
+/* Player UI. Everything is drawn with the story's theme variables (--sg-*), set by themeVars(). */
+
+.sg-viewport {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--sg-bg);
+  color: var(--sg-text);
+  font-family: var(--sg-font-body);
+  overflow: hidden;
+}
+
+/* Fixed 9:16 portrait stage, as large as fits. UI sizes scale with its width (cqw). */
+.sg-stage {
+  position: relative;
+  height: min(100dvh, calc(100vw * 16 / 9));
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  container-type: size;
+  font-size: 4cqw;
+  line-height: 1.4;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sg-scene, .sg-scene-art { position: absolute; inset: 0; }
+.sg-scene-art { filter: var(--sg-grade); }
+.sg-fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.sg-layer { position: absolute; object-fit: contain; }
+
+.sg-hotspot {
+  position: absolute;
+  padding: 0;
+  border: 0.5cqw dashed transparent;
+  border-radius: var(--sg-radius);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.sg-hotspot:hover:not(:disabled), .sg-hotspot:focus-visible {
+  border-color: var(--sg-accent);
+  background: color-mix(in srgb, var(--sg-accent) 15%, transparent);
+  outline: none;
+}
+.sg-hotspot:disabled { cursor: default; }
+
+.sg-inventory {
+  position: absolute;
+  top: 3cqw;
+  right: 3cqw;
+  display: flex;
+  gap: 2cqw;
+  margin: 0;
+  padding: 1.5cqw;
+  list-style: none;
+  background: color-mix(in srgb, var(--sg-surface) 85%, transparent);
+  border-radius: var(--sg-radius);
+}
+.sg-inventory img { display: block; width: 10cqw; height: 10cqw; }
+
+.sg-button {
+  font: inherit;
+  padding: 2cqw 4cqw;
+  border: 0.4cqw solid var(--sg-accent);
+  border-radius: var(--sg-radius);
+  background: var(--sg-surface);
+  color: var(--sg-text);
+  cursor: pointer;
+}
+.sg-button:hover, .sg-button:focus-visible { background: color-mix(in srgb, var(--sg-accent) 20%, var(--sg-surface)); outline: none; }
+.sg-primary { background: var(--sg-accent); color: var(--sg-accent-text); }
+.sg-primary:hover, .sg-primary:focus-visible { background: color-mix(in srgb, var(--sg-accent) 85%, white); }
+.sg-icon-button {
+  font: inherit;
+  width: 9cqw;
+  height: 9cqw;
+  border: 0;
+  border-radius: 50%;
+  background: var(--sg-surface);
+  color: var(--sg-text);
+  cursor: pointer;
+}
+
+/* Dialogue */
+.sg-dialogue { position: absolute; left: 0; right: 0; bottom: 0; padding: 4cqw; }
+.sg-portrait {
+  position: absolute;
+  left: 4cqw;
+  bottom: calc(100% - 6cqw);
+  width: 38cqw;
+  pointer-events: none;
+}
+.sg-dialogue-box {
+  position: relative;
+  min-height: 30cqw;
+  padding: 4cqw 5cqw 6cqw;
+  background: var(--sg-dialogue-frame) center / 100% 100% no-repeat, color-mix(in srgb, var(--sg-surface) 94%, transparent);
+  border: 0.4cqw solid var(--sg-accent);
+  border-radius: var(--sg-radius);
+  cursor: pointer;
+}
+.sg-speaker { margin: 0 0 1.5cqw; font-family: var(--sg-font-display); font-weight: 700; }
+.sg-line { margin: 0; }
+.sg-narration { font-style: italic; color: var(--sg-muted); }
+.sg-choices { display: grid; gap: 2cqw; margin: 3cqw 0 0; padding: 0; list-style: none; }
+.sg-choices .sg-button { width: 100%; text-align: left; }
+.sg-continue {
+  position: absolute;
+  right: 3cqw;
+  bottom: 1cqw;
+  font: inherit;
+  border: 0;
+  background: none;
+  color: var(--sg-accent);
+  cursor: pointer;
+}
+.sg-continue span { display: inline-block; animation: sg-bob 1.2s ease-in-out infinite; }
+
+/* Puzzles */
+.sg-puzzle {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 3cqw;
+  padding: 5cqw;
+  background: var(--sg-surface) center / cover no-repeat;
+  color: var(--sg-text);
+  animation: sg-fade-in 0.3s ease-out;
+}
+.sg-puzzle-full { inset: 0; }
+.sg-puzzle-inline {
+  padding: 3cqw;
+  border: 0.4cqw solid var(--sg-accent);
+  border-radius: var(--sg-radius);
+  box-shadow: 0 2cqw 6cqw rgb(0 0 0 / 0.35);
+}
+.sg-puzzle-header { display: flex; align-items: center; justify-content: space-between; gap: 3cqw; }
+.sg-puzzle-header h2 { margin: 0; font-family: var(--sg-font-display); font-size: 1.4em; }
+.sg-puzzle-prompt { margin: 0; color: var(--sg-muted); }
+.sg-puzzle-body { flex: 1; display: grid; place-items: center; }
+.sg-puzzle-hints { display: grid; gap: 2cqw; }
+.sg-hint { margin: 0; padding: 2cqw 3cqw; border-radius: var(--sg-radius); background: color-mix(in srgb, var(--sg-accent) 15%, var(--sg-surface)); }
+
+/* Built-in puzzle: combination lock */
+.sg-lock {
+  display: grid;
+  justify-items: center;
+  gap: 5cqw;
+  padding: 6cqw;
+  border-radius: var(--sg-radius);
+  background: color-mix(in srgb, var(--sg-bg) 60%, var(--sg-surface)) center / cover no-repeat;
+}
+.sg-lock-dials { display: flex; gap: 3cqw; }
+.sg-lock-dial {
+  display: grid;
+  justify-items: center;
+  gap: 1cqw;
+  padding: 2cqw;
+  border: 0.4cqw solid var(--sg-accent);
+  border-radius: var(--sg-radius);
+  background: var(--sg-surface) center / cover no-repeat;
+}
+.sg-lock-dial button { font: inherit; border: 0; background: none; color: var(--sg-accent); cursor: pointer; padding: 1cqw 3cqw; }
+.sg-lock-symbol { font-family: var(--sg-font-display); font-size: 2.4em; font-weight: 700; min-width: 1.2em; text-align: center; }
+.sg-lock-wrong { margin: 0; color: var(--sg-muted); }
+.sg-shake { animation: sg-shake 0.4s; }
+
+/* Ending */
+.sg-end {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 4cqw;
+  text-align: center;
+  background: color-mix(in srgb, var(--sg-bg) 88%, transparent);
+  animation: sg-fade-in 1s ease-out;
+}
+.sg-end h1 { margin: 0; font-family: var(--sg-font-display); font-size: 2em; }
+.sg-end-kicker { margin: 0; letter-spacing: 0.3em; text-transform: uppercase; color: var(--sg-accent); }
+
+@keyframes sg-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sg-bob { 50% { transform: translateY(0.8cqw); } }
+@keyframes sg-shake { 20%, 60% { transform: translateX(-2cqw); } 40%, 80% { transform: translateX(2cqw); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-continue span, .sg-shake, .sg-puzzle, .sg-end { animation: none; }
+}

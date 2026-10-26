@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+# Built story packs are build output, never edited by hand
+packages/player/public/packs/
+test-results/
+playwright-report/

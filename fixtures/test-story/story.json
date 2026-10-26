@@ -1,0 +1,23 @@
+{
+  "id": "the-last-ferry",
+  "version": "0.1.0",
+  "title": "The Last Ferry",
+  "synopsis": "Mira has one evening to cross to the island. The ferry is chained, and the ferryman has other plans.",
+  "estimatedMinutes": 3,
+  "minEngine": "0.1.0",
+  "cast": [
+    { "character": "mira", "variant": "traveller", "role": "protagonist" },
+    { "character": "tomo", "role": "npc" }
+  ],
+  "startScene": "harbour",
+  "flags": {
+    "arrived": false,
+    "talked_to_tomo": false,
+    "helped_ferryman": false,
+    "knows_code": false
+  },
+  "exports": ["helped_ferryman"],
+  "items": [
+    { "id": "rope", "name": "Coil of rope", "icon": "art/rope.svg" }
+  ]
+}

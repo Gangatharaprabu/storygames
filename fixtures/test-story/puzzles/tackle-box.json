@@ -1,0 +1,14 @@
+{
+  "id": "tackle-box",
+  "type": "combination-lock",
+  "presentation": "inline",
+  "rect": { "x": 140, "y": 560, "w": 800, "h": 900 },
+  "title": "Tackle Box",
+  "prompt": "Tomo said the code is his age.",
+  "config": { "dials": 2, "solution": ["7", "2"] },
+  "hints": ["Seventy-two."],
+  "onSolve": [
+    { "do": "give", "item": "rope" },
+    { "do": "dialogue", "knot": "got_rope" }
+  ]
+}

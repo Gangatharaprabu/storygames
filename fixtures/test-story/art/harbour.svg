@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920">
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2b2745"/><stop offset="0.55" stop-color="#9a5f7d"/><stop offset="1" stop-color="#f2a65a"/>
+  </linearGradient></defs>
+  <rect width="1080" height="1120" fill="url(#sky)"/>
+  <circle cx="760" cy="880" r="130" fill="#ffd8a0" opacity="0.85"/>
+  <path d="M0 1040 Q200 980 380 1030 T760 1010 T1080 1040 L1080 1120 L0 1120 Z" fill="#5b3f63"/>
+  <rect y="1110" width="1080" height="420" fill="#3d4f7a"/>
+  <path d="M0 1180 H1080 M0 1260 H1080 M0 1350 H1080 M0 1450 H1080" stroke="#5d72a3" stroke-width="6" stroke-dasharray="60 90" opacity="0.6"/>
+  <!-- ferry -->
+  <path d="M90 1340 L560 1340 L510 1440 L140 1440 Z" fill="#7a4b3a"/>
+  <rect x="200" y="1250" width="220" height="90" rx="12" fill="#e9d8bd"/>
+  <rect x="230" y="1270" width="60" height="45" rx="6" fill="#3d4f7a"/>
+  <rect x="320" y="1270" width="60" height="45" rx="6" fill="#3d4f7a"/>
+  <path d="M560 1380 Q600 1420 640 1520" stroke="#b8b0a0" stroke-width="10" stroke-dasharray="18 10" fill="none"/>
+  <!-- dock -->
+  <rect y="1500" width="1080" height="420" fill="#8a6247"/>
+  <path d="M0 1580 H1080 M0 1680 H1080 M0 1790 H1080" stroke="#6e4b36" stroke-width="8"/>
+  <rect x="40" y="1490" width="40" height="120" fill="#6e4b36"/><rect x="1000" y="1490" width="40" height="120" fill="#6e4b36"/>
+  <!-- lantern post -->
+  <rect x="925" y="1080" width="30" height="440" fill="#3b3045"/>
+  <rect x="890" y="960" width="100" height="130" rx="18" fill="#ffd27a" stroke="#3b3045" stroke-width="12"/>
+  <path d="M915 1000 l8 16 18 2 -13 12 4 18 -17 -9 -17 9 4 -18 -13 -12 18 -2 Z" fill="#c26b3a" opacity="0.8"/>
+  <!-- noticeboard -->
+  <rect x="150" y="1590" width="22" height="230" fill="#4f3a2c"/><rect x="330" y="1590" width="22" height="230" fill="#4f3a2c"/>
+  <rect x="120" y="1560" width="260" height="170" rx="10" fill="#c9a77c" stroke="#4f3a2c" stroke-width="10"/>
+  <rect x="150" y="1590" width="110" height="80" fill="#f4ecdc" transform="rotate(-4 205 1630)"/>
+  <!-- crates + tackle box -->
+  <rect x="800" y="1600" width="200" height="180" fill="#a57850" stroke="#6e4b36" stroke-width="8"/>
+  <rect x="580" y="1700" width="170" height="110" rx="10" fill="#4e6b52" stroke="#2f4232" stroke-width="8"/>
+  <rect x="645" y="1735" width="40" height="34" rx="6" fill="#d8b04a"/>
+</svg>

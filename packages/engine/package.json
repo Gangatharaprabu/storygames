@@ -1,0 +1,12 @@
+{
+  "name": "@storygames/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc -p ." },
+  "dependencies": {
+    "@storygames/pack-spec": "workspace:*",
+    "inkjs": "^2.4.0"
+  }
+}
