@@ -58,3 +58,11 @@ fixtures/
 tests/         integration tests: build the test story and play every route headless
 scripts/       check-boundaries.mjs enforces which package may import which
 ```
+
+## Online preview
+
+Every push to `claude/zealous-tesla-3wwgom` or `main` runs `pnpm check`, builds the player
+with the test story, and publishes it to GitHub Pages
+(`.github/workflows/deploy-pages.yml`). One-time setup: **Settings → Pages → Build and
+deployment → Source: GitHub Actions**. GitHub Pages needs a public repo, or GitHub Pro for
+a private one.
