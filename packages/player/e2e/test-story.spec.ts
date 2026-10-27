@@ -11,6 +11,13 @@ async function finishDialogue(page: Page, pick?: RegExp) {
   await expect(dialogue).toBeHidden();
 }
 
+/** Open the story from its title screen. */
+async function start(page: Page, url = "/") {
+  await page.goto(url);
+  await page.getByRole("button", { name: "Play" }).click();
+  await expect(page.getByTestId("dialogue")).toBeVisible();
+}
+
 async function setDials(page: Page, values: number[]) {
   for (const [i, v] of values.entries()) {
     for (let n = 0; n < v; n++) await page.getByRole("button", { name: `Dial ${i + 1} up` }).click();
@@ -19,6 +26,9 @@ async function setDials(page: Page, values: number[]) {
 
 test("plays The Last Ferry to the end (help Tomo route)", async ({ page }) => {
   await page.goto("/");
+  await expect(page.getByRole("heading", { name: "The Last Ferry" })).toBeVisible();
+  await page.screenshot({ path: "test-results/00-title.png" });
+  await page.getByRole("button", { name: "Play" }).click();
   await expect(page.getByText("The last light is leaving the harbour")).toBeVisible();
   await page.screenshot({ path: "test-results/01-arrival.png" });
   await finishDialogue(page);
@@ -60,12 +70,12 @@ test("plays The Last Ferry to the end (help Tomo route)", async ({ page }) => {
 });
 
 test("resumes after a reload", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByTestId("dialogue")).toBeVisible();
+  await start(page);
   await finishDialogue(page);
   await page.getByRole("button", { name: "Tomo, the ferryman" }).click();
   await finishDialogue(page, /Insist/);
   await page.reload();
+  await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.getByRole("button", { name: "Noticeboard" })).toBeAttached();
   await expect(page.getByTestId("dialogue")).toBeHidden();
 });
@@ -80,10 +90,42 @@ test.describe("phone held sideways", () => {
 });
 
 test("shows tap markers on hotspots only when the scene is interactive", async ({ page }) => {
-  await page.goto("/");
+  await start(page);
   const marker = page.locator('[data-hotspot="tomo"] .sg-hotspot-marker');
-  await expect(page.getByTestId("dialogue")).toBeVisible();
   await expect(marker).toBeHidden();
   await finishDialogue(page);
   await expect(marker).toBeVisible();
+});
+
+test.describe("typewriter", () => {
+  test.use({ reducedMotion: "no-preference" });
+
+  test("first tap finishes the line, second tap moves on", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Play" }).click();
+    const typed = page.locator(".sg-line");
+    const untyped = page.locator(".sg-untyped");
+    await expect(untyped).not.toHaveText(""); // still typing
+    await page.getByRole("button", { name: "Continue" }).click();
+    await expect(untyped).toHaveText("");
+    await expect(typed).toContainText("The last light is leaving the harbour.");
+    await page.getByRole("button", { name: "Continue" }).click();
+    await expect(page.locator(".sg-speaker")).toHaveText("Mira");
+  });
+});
+
+test("debug panel jumps between scenes", async ({ page }) => {
+  await start(page, "/?debug");
+  await page.getByRole("button", { name: "Open debug panel" }).click();
+  await expect(page.getByRole("complementary", { name: "Debug panel" })).toBeVisible();
+  await page.screenshot({ path: "test-results/06-debug.png" });
+  await page.getByRole("button", { name: "Crossing" }).click();
+  await expect(page.getByText(/chain falls away/)).toBeVisible();
+  await page.getByRole("button", { name: "Skip dialogue" }).click();
+  await expect(page.getByText("The End")).toBeVisible();
+});
+
+test("the debug panel is hidden from players", async ({ page }) => {
+  await start(page);
+  await expect(page.getByRole("button", { name: "Open debug panel" })).toHaveCount(0);
 });

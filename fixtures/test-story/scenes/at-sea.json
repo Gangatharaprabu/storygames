@@ -2,6 +2,7 @@
   "id": "at-sea",
   "title": "Crossing",
   "background": "art/at-sea.svg",
+  "music": "audio/waves.wav",
   "onEnter": [
     { "do": "dialogue", "knot": "farewell" },
     { "do": "end" }

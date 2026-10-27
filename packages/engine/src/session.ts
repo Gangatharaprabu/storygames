@@ -75,7 +75,7 @@ export class StorySession {
     this.ink = new InkBridge(pack.narrative.ink, pack.characters);
 
     const save = options.save;
-    if (save && save.packId === pack.manifest.id && save.packVersion === pack.manifest.version) {
+    if (save && this.saveFits(save)) {
       this.state = structuredClone(save.state);
       this.ink.loadState(save.ink);
       this.started = true;
@@ -211,7 +211,70 @@ export class StorySession {
     this.changed();
   }
 
+  // ---- debug (Studio preview / debug panel only) ----------------------------
+
+  /** Tools for authors testing a story. Never shown to players. */
+  readonly debug = {
+    /** Jump straight to a scene, dropping any open dialogue or puzzle. */
+    goto: (sceneId: string) => {
+      this.sceneById(sceneId);
+      this.interrupt();
+      this.enterScene(sceneId);
+      this.pump();
+    },
+    setFlag: (name: string, value: FlagValue) => {
+      this.state.flags[name] = value;
+      this.changed();
+    },
+    give: (itemId: string) => {
+      if (!this.state.inventory.includes(itemId)) this.state.inventory.push(itemId);
+      this.changed();
+    },
+    take: (itemId: string) => {
+      this.state.inventory = this.state.inventory.filter((i) => i !== itemId);
+      this.changed();
+    },
+    /** Solve the open puzzle (running its onSolve), or mark another puzzle solved. */
+    solve: (puzzleId?: string) => {
+      const active = this.puzzle;
+      if (active && (!puzzleId || puzzleId === active.puzzle.id)) {
+        this.state.solved.push(active.puzzle.id);
+        this.puzzle = null;
+        this.queue.unshift(...active.puzzle.onSolve);
+        this.emit({ type: "puzzle-solved", puzzle: active.puzzle.id });
+        this.pump();
+      } else if (puzzleId && !this.state.solved.includes(puzzleId)) {
+        this.state.solved.push(puzzleId);
+        this.changed();
+      }
+    },
+    /** Close the current dialogue as if it had been read to the end. */
+    skipDialogue: () => {
+      if (!this.dialogue) return;
+      this.dialogue = null;
+      this.state.flags = this.ink.pullFlags(this.state.flags);
+      this.pump();
+    },
+  };
+
   // ---- internals -----------------------------------------------------------
+
+  /** A save is only used if it was made by this story and still makes sense for it. */
+  private saveFits(save: SaveData): boolean {
+    const p = this.pack;
+    if (save.packId !== p.manifest.id || save.packVersion !== p.manifest.version) return false;
+    const scenes = new Set(p.scenes.map((s) => s.id));
+    const items = new Set(p.items.map((i) => i.id));
+    const puzzles = new Set(p.puzzles.map((x) => x.id));
+    const st = save.state;
+    return scenes.has(st.scene) && st.inventory.every((i) => items.has(i)) && st.solved.every((x) => puzzles.has(x));
+  }
+
+  private interrupt() {
+    this.dialogue = null;
+    this.puzzle = null;
+    this.queue = [];
+  }
 
   /** Run queued actions until one needs the player (dialogue/puzzle) or the queue is empty. */
   private pump() {

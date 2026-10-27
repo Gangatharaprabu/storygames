@@ -1,7 +1,9 @@
-import { useEffect, useSyncExternalStore, type ComponentType } from "react";
+import { useEffect, useSyncExternalStore, type ComponentType, type ReactNode } from "react";
 import type { StorySession } from "@storygames/engine";
+import type { SoundBoard } from "./audio.ts";
 import { DialogueBox } from "./DialogueBox.tsx";
 import { PuzzleHost } from "./PuzzleHost.tsx";
+import { RotateNotice } from "./RotateNotice.tsx";
 import { SceneView } from "./SceneView.tsx";
 import { themeVars } from "./theme.ts";
 
@@ -16,33 +18,63 @@ export interface StoryPlayerProps {
   /** Resolves a pack-relative asset path to a URL. */
   assetUrl: (path: string) => string;
   puzzleViews: Record<string, ComponentType<PuzzleViewComponentProps>>;
+  sound?: SoundBoard;
   onRestart?: () => void;
+  /** Extra controls drawn over the viewport, e.g. the debug panel. */
+  children?: ReactNode;
 }
 
 /** Plays one story session in a portrait stage that scales to fit the screen. */
-export function StoryPlayer({ session, assetUrl, puzzleViews, onRestart }: StoryPlayerProps) {
+export function StoryPlayer({ session, assetUrl, puzzleViews, sound, onRestart, children }: StoryPlayerProps) {
   const view = useSyncExternalStore(
     (cb) => session.subscribe(cb),
     () => session.view(),
   );
   const { theme, manifest } = session.pack;
 
+  const sounds = theme.sounds;
+  const music = view.scene.music ? assetUrl(view.scene.music) : undefined;
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.key === " " || e.key === "Enter") && view.dialogue && !view.dialogue.choices) {
-        e.preventDefault();
-        session.advance();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [session, view.dialogue]);
+    sound?.setMusic(music);
+  }, [sound, music]);
+  useEffect(() => () => sound?.stop(), [sound]);
+  useEffect(
+    () =>
+      session.onEvent((e) => {
+        if (e.type === "puzzle-solved") sound?.play(sounds.solve && assetUrl(sounds.solve));
+      }),
+    [session, sound, sounds, assetUrl],
+  );
+  const sfx = (path: string | undefined) => sound?.play(path && assetUrl(path));
+  const muted = useSyncExternalStore(
+    (cb) => sound?.subscribe(cb) ?? (() => {}),
+    () => sound?.muted ?? true,
+  );
+  const hasAudio = Boolean(sounds.tap || sounds.solve || sounds.wrong || session.pack.scenes.some((s) => s.music));
 
   return (
     <div className="sg-viewport" style={themeVars(theme, assetUrl)}>
       <div className="sg-backdrop" aria-hidden="true" style={{ backgroundImage: `url(${assetUrl(view.scene.background)})` }} />
       <main className="sg-stage" aria-label={manifest.title}>
-        <SceneView view={view} assetUrl={assetUrl} onHotspot={(id) => session.activateHotspot(id)} />
+        <SceneView
+          view={view}
+          assetUrl={assetUrl}
+          onHotspot={(id) => {
+            sfx(sounds.tap);
+            session.activateHotspot(id);
+          }}
+        />
+
+        {sound && hasAudio && (
+          <button
+            type="button"
+            className="sg-icon-button sg-mute"
+            aria-label={muted ? "Sound on" : "Sound off"}
+            onClick={() => sound.setMuted(!muted)}
+          >
+            {muted ? "🔇" : "🔊"}
+          </button>
+        )}
 
         {view.inventory.length > 0 && (
           <ul className="sg-inventory" aria-label="Inventory">
@@ -59,7 +91,11 @@ export function StoryPlayer({ session, assetUrl, puzzleViews, onRestart }: Story
             active={view.puzzle}
             assetUrl={assetUrl}
             views={puzzleViews}
-            onSubmit={(a) => session.submitPuzzle(a)}
+            onSubmit={(a) => {
+              const ok = session.submitPuzzle(a);
+              if (!ok) sfx(sounds.wrong);
+              return ok;
+            }}
             onHint={() => session.requestHint()}
             onClose={() => session.closePuzzle()}
           />
@@ -70,7 +106,10 @@ export function StoryPlayer({ session, assetUrl, puzzleViews, onRestart }: Story
             line={view.dialogue}
             assetUrl={assetUrl}
             onAdvance={() => session.advance()}
-            onChoose={(i) => session.choose(i)}
+            onChoose={(i) => {
+              sfx(sounds.tap);
+              session.choose(i);
+            }}
           />
         )}
 
@@ -84,10 +123,8 @@ export function StoryPlayer({ session, assetUrl, puzzleViews, onRestart }: Story
           </div>
         )}
       </main>
-      <div className="sg-rotate" role="alert">
-        <span className="sg-rotate-icon" aria-hidden="true">📱</span>
-        <p>Turn your phone upright to play.</p>
-      </div>
+      {children}
+      <RotateNotice />
     </div>
   );
 }

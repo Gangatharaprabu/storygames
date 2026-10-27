@@ -10,6 +10,8 @@ export default defineConfig({
     // A portrait phone.
     ...devices["Pixel 7"],
     launchOptions: executablePath ? { executablePath } : {},
+    // Text appears instantly, so tests don't wait on the typewriter (it has its own test).
+    reducedMotion: "reduce",
   },
   webServer: {
     command: "pnpm preview --port 4173 --strictPort",

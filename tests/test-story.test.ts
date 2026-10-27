@@ -4,8 +4,8 @@ import { buildStory } from "../packages/cli/src/build.ts";
 import { StorySession } from "../packages/engine/src/index.ts";
 import { puzzleLogic } from "../packages/puzzles/src/logic.ts";
 
-function newSession() {
-  const result = buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
+async function newSession() {
+  const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
   expect(result.errors).toEqual([]);
   const session = new StorySession(result.pack!, { puzzles: puzzleLogic });
   session.start();
@@ -22,8 +22,8 @@ function finishDialogue(s: StorySession, choice = 0) {
 }
 
 describe("The Last Ferry", () => {
-  it("opens with the arrival narration", () => {
-    const s = newSession();
+  it("opens with the arrival narration", async () => {
+    const s = await newSession();
     expect(s.view().scene.id).toBe("harbour");
     expect(s.view().dialogue?.speaker).toBeUndefined();
     s.advance();
@@ -31,8 +31,8 @@ describe("The Last Ferry", () => {
     expect(s.view().dialogue?.expression).toBe("worried");
   });
 
-  it("route A: help Tomo, open the tackle box, read the lantern, cross", () => {
-    const s = newSession();
+  it("route A: help Tomo, open the tackle box, read the lantern, cross", async () => {
+    const s = await newSession();
     finishDialogue(s);
     s.activateHotspot("tomo");
     finishDialogue(s, 0); // offer to help
@@ -64,8 +64,8 @@ describe("The Last Ferry", () => {
     expect(s.exports()).toEqual({ helped_ferryman: true });
   });
 
-  it("route B: refuse Tomo, read the noticeboard, cross alone", () => {
-    const s = newSession();
+  it("route B: refuse Tomo, read the noticeboard, cross alone", async () => {
+    const s = await newSession();
     finishDialogue(s);
     s.activateHotspot("tomo");
     finishDialogue(s, 1); // insist
@@ -84,8 +84,8 @@ describe("The Last Ferry", () => {
     expect(s.exports()).toEqual({ helped_ferryman: false });
   });
 
-  it("the ferry is just locked before talking to Tomo, and leaving a puzzle cancels what follows", () => {
-    const s = newSession();
+  it("the ferry is just locked before talking to Tomo, and leaving a puzzle cancels what follows", async () => {
+    const s = await newSession();
     finishDialogue(s);
     s.activateHotspot("ferry");
     expect(s.view().puzzle).toBeNull();
@@ -99,19 +99,53 @@ describe("The Last Ferry", () => {
     expect(s.view().scene.id).toBe("harbour");
   });
 
-  it("resumes from a save mid-story", () => {
-    const s = newSession();
+  it("resumes from a save mid-story", async () => {
+    const s = await newSession();
     finishDialogue(s);
     s.activateHotspot("tomo");
     finishDialogue(s, 0);
     const save = JSON.parse(JSON.stringify(s.save()));
 
-    const result = buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
+    const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
     const resumed = new StorySession(result.pack!, { puzzles: puzzleLogic, save });
     resumed.start();
     expect(resumed.view().state.flags.helped_ferryman).toBe(true);
     expect(resumed.view().dialogue).toBeNull();
     resumed.activateHotspot("tomo");
     expect(resumed.view().dialogue?.text).toMatch(/Still here/); // ink remembers too
+  });
+});
+
+describe("debug tools", () => {
+  it("jump to a scene, set flags, give items, solve puzzles", async () => {
+    const s = await newSession();
+    expect(s.view().dialogue).not.toBeNull();
+    s.debug.skipDialogue();
+    expect(s.view().dialogue).toBeNull();
+
+    s.debug.setFlag("talked_to_tomo", true);
+    s.debug.give("rope");
+    expect(s.view().inventory.map((i) => i.id)).toEqual(["rope"]);
+    s.debug.take("rope");
+    expect(s.view().inventory).toEqual([]);
+
+    s.activateHotspot("ferry");
+    expect(s.view().puzzle?.puzzle.id).toBe("ferry-lock");
+    s.debug.solve();
+    expect(s.view().scene.id).toBe("at-sea");
+
+    s.debug.goto("harbour");
+    expect(s.view().scene.id).toBe("harbour");
+    expect(s.view().dialogue).toBeNull(); // arrival only plays once
+  });
+
+  it("ignores a save that no longer fits the story", async () => {
+    const s = await newSession();
+    const save = s.save();
+    save.state.scene = "deleted-scene";
+    const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
+    const fresh = new StorySession(result.pack!, { puzzles: puzzleLogic, save });
+    fresh.start();
+    expect(fresh.view().scene.id).toBe("harbour");
   });
 });

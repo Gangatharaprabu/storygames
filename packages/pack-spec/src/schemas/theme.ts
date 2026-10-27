@@ -25,5 +25,13 @@ export const Theme = z.object({
   colorGrade: z.string().optional(),
   /** Optional frame art drawn behind the dialogue box. */
   dialogueFrame: AssetPath.optional(),
+  /** Short UI sounds. All optional; missing ones are silent. */
+  sounds: z
+    .object({
+      tap: AssetPath.optional(),
+      solve: AssetPath.optional(),
+      wrong: AssetPath.optional(),
+    })
+    .default({}),
 });
 export type Theme = z.infer<typeof Theme>;

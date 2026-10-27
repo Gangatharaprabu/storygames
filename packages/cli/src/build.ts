@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
 import { Compiler, CompilerOptions } from "inkjs/full";
 import {
@@ -10,6 +10,7 @@ import {
   type StoryPackInput,
 } from "@storygames/pack-spec";
 import type { z } from "zod";
+import { writeAssets, type AssetJob } from "./assets.ts";
 import { LibraryCharacter, Puzzle, Scene, StorySource, Theme } from "./source.ts";
 
 export interface BuildOptions {
@@ -32,10 +33,10 @@ export interface BuildResult {
  *
  * Output layout:
  *   pack.json                       the whole story (validated against pack-spec)
- *   art/…                           the story's art folder, copied as is
+ *   art/…                           art the story references (PNG/JPG converted to WebP)
  *   characters/<id>/<expr>.<ext>    portraits of the cast, snapshotted from the library
  */
-export function buildStory(opts: BuildOptions): BuildResult {
+export async function buildStory(opts: BuildOptions): Promise<BuildResult> {
   const storyDir = resolve(opts.storyDir);
   const libraryDir = resolve(opts.libraryDir);
   const errors: Problem[] = [];
@@ -114,27 +115,31 @@ export function buildStory(opts: BuildOptions): BuildResult {
   if (!result.ok) return { ok: false, errors: result.errors, warnings };
 
   // Every referenced asset must exist.
+  const jobs: AssetJob[] = [];
+  const backgrounds = new Set(pack.scenes.map((sc) => sc.background));
   for (const path of collectAssetPaths(pack)) {
     if (path.startsWith("characters/")) continue;
-    if (!existsSync(join(storyDir, path))) errors.push({ path, message: "asset file not found" });
+    const from = join(storyDir, path);
+    if (!existsSync(from)) errors.push({ path, message: "asset file not found" });
+    else jobs.push({ from, path, kind: backgrounds.has(path) ? "background" : "image" });
   }
-  for (const [from] of portraitCopies) {
+  for (const [from, to] of portraitCopies) {
     if (!existsSync(from)) errors.push({ path: from, message: "portrait file not found" });
+    else jobs.push({ from, path: to, kind: "image" });
   }
   if (errors.length) return { ok: false, errors, warnings };
 
+  let built = result.pack;
   if (opts.outDir) {
     const out = resolve(opts.outDir);
     rmSync(out, { recursive: true, force: true });
     mkdirSync(out, { recursive: true });
-    if (existsSync(join(storyDir, "art"))) cpSync(join(storyDir, "art"), join(out, "art"), { recursive: true });
-    for (const [from, to] of portraitCopies) {
-      mkdirSync(join(out, to, ".."), { recursive: true });
-      cpSync(from, join(out, to));
-    }
-    writeFileSync(join(out, "pack.json"), JSON.stringify(result.pack));
+    const renamed = await writeAssets(jobs, out, warnings);
+    // Point the pack at converted files (art/x.png → art/x.webp).
+    built = JSON.parse(JSON.stringify(built, (_k, v) => (typeof v === "string" && renamed.has(v) ? renamed.get(v) : v)));
+    writeFileSync(join(out, "pack.json"), JSON.stringify(built));
   }
-  return { ok: true, pack: result.pack, errors, warnings };
+  return { ok: true, pack: built, errors, warnings };
 }
 
 function compileInk(dir: string, entry: string, errors: Problem[], warnings: Problem[]) {
@@ -166,8 +171,10 @@ function collectAssetPaths(pack: StoryPackInput): string[] {
   const paths: string[] = [];
   if (pack.manifest.cover) paths.push(pack.manifest.cover);
   if (pack.theme.dialogueFrame) paths.push(pack.theme.dialogueFrame);
+  paths.push(...Object.values(pack.theme.sounds ?? {}).filter((p): p is string => Boolean(p)));
   for (const s of pack.scenes) {
     paths.push(s.background);
+    if (s.music) paths.push(s.music);
     s.layers?.forEach((l) => paths.push(l.image));
   }
   for (const p of pack.puzzles ?? []) paths.push(...Object.values(p.skin ?? {}));

@@ -12,7 +12,8 @@ export function SceneView({
 }) {
   return (
     <div className="sg-scene" data-scene={view.scene.id}>
-      <div className="sg-scene-art">
+      {/* Keyed by scene, so every scene change fades in. */}
+      <div className="sg-scene-art" key={view.scene.id}>
         <img className="sg-fill" src={assetUrl(view.scene.background)} alt="" draggable={false} />
         {view.layers.map((l) => (
           <img key={l.id} className="sg-layer" style={rectStyle(l.rect)} src={assetUrl(l.image)} alt="" draggable={false} />

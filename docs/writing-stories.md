@@ -19,10 +19,20 @@ my-story/
 
 ## Art
 
+- Drop in PNG or JPG straight from your image tool; the build converts them to WebP and
+  scales them to fit 1080 × 1920, so a 2–4 MB render becomes ~100–300 KB. SVG is kept as is.
+  The build warns when a background isn't 9:16 or is too small to look sharp.
 - Portrait canvas: **1080 × 1920**. All `rect`s use these units, origin top-left.
 - Phones taller than 9:16 show the theme background above and below the stage.
 - Portraits: every expression of a character the same size and framing.
 - Interactive objects that change (opened box, picked-up item) are separate layers with an `if`.
+
+## Sound
+
+- `"music": "audio/harbour.mp3"` on a scene loops it, fading between scenes. Scenes that
+  name the same file keep it playing without a restart.
+- `theme.json` → `"sounds": { "tap": …, "solve": …, "wrong": … }` for UI sounds.
+- Prefer `.mp3` or `.m4a` (much smaller than `.wav`). Players can mute with the 🔊 button.
 
 ## Dialogue (ink)
 
@@ -76,6 +86,12 @@ puzzle accepts a `backdrop` skin slot.
 | Type | Config | Skin slots |
 |---|---|---|
 | `combination-lock` | `dials`, `solution`, optional `symbols` (default 0–9) | `body`, `dial` |
+
+## Testing your story
+
+`pnpm dev <story-dir>` rebuilds on every save and reloads the browser where you were.
+The 🐞 debug panel jumps to any scene, toggles flags, items and solved puzzles, skips
+dialogue and solves the open puzzle, so you can test the last scene without replaying.
 
 ## Checking your work
 

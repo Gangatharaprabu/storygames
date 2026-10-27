@@ -57,7 +57,9 @@ runs in the player, in Studio preview and in tests.
 ## Milestones
 
 1. **Walking skeleton** ✅: spec, engine, one puzzle type (both presentations), CLI build, player page, test story.
-2. First real story: more puzzle types, debug panel, autosave polish.
+2. First real story. Part A ✅: live rebuild, debug panel, AI-art pipeline (PNG → WebP),
+   typewriter text, scene fades, music and UI sounds, title screen, `content/` folder.
+   Part B: the story itself, plus the puzzle types it needs.
 3. Publishing: CDN, `catalog.json`, staging/live channels; player library screen.
 4. Studio UI: character library, editors, live preview.
 5. A sequel sharing a character: saga imports/exports end to end.

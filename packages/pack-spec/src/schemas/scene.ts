@@ -22,6 +22,8 @@ export const Scene = z.object({
   id: Id,
   title: z.string().optional(),
   background: AssetPath,
+  /** Looping music or ambience. Keeps playing across scenes that name the same file. */
+  music: AssetPath.optional(),
   layers: z.array(Layer).default([]),
   hotspots: z.array(Hotspot).default([]),
   /** Runs every time the player enters the scene. */

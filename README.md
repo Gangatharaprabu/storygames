@@ -20,25 +20,23 @@ Needs Node 20+ and pnpm.
 
 ```sh
 pnpm install
-pnpm dev          # builds the test story and opens the player at http://localhost:5173
+pnpm dev                     # the test story, at http://localhost:5173
+pnpm dev content/series/...  # any story folder
 ```
 
-Edit anything in `fixtures/test-story/` (for example a line in `narrative/main.ink`), then:
-
-```sh
-pnpm build:test-story   # rebuild the pack
-```
-
-and refresh the browser. Saves live in the browser's localStorage; use **Play again** at
-the end, or clear site data, to start over.
+`pnpm dev` rebuilds the story whenever you save a file in it (or in the character
+library) and the browser reloads by itself, resuming where you were. A 🐞 button opens the
+**debug panel**: jump to any scene, change flags and items, skip dialogue, solve puzzles.
+On the deployed site, add `?debug` to the URL to get the same panel.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `pnpm dev` | Build the test story and run the player in dev mode |
+| `pnpm dev [story-dir]` | Build the story on every save and run the player with the debug panel |
 | `pnpm storygames validate <story> --library <dir>` | Check a story without building |
 | `pnpm storygames build <story> --library <dir> --out <dir>` | Build a Story Pack |
+| `pnpm storygames watch <story> --library <dir> --out <dir>` | Rebuild on every change |
 | `pnpm check` | Package boundaries + typecheck + unit/integration tests |
 | `pnpm test:e2e` | Build the player and play the test story in a real browser (Playwright) |
 
@@ -52,6 +50,7 @@ packages/
   ui/          React player UI: stage, dialogue, puzzle host, inventory (theme-driven)
   player/      the player app (web now; wrapped with Capacitor later)
   cli/         storygames build | validate (publish comes in Milestone 3)
+content/       your stories and characters (see content/README.md)
 fixtures/
   library/     a tiny character library (Mira, Tomo)
   test-story/  "The Last Ferry", a 3-minute test story with two routes

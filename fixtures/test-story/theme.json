@@ -12,5 +12,10 @@
     "display": "Georgia, 'Times New Roman', serif"
   },
   "radius": 18,
-  "colorGrade": "saturate(1.05)"
+  "colorGrade": "saturate(1.05)",
+  "sounds": {
+    "tap": "audio/tap.wav",
+    "solve": "audio/solve.wav",
+    "wrong": "audio/wrong.wav"
+  }
 }

@@ -2,6 +2,7 @@
   "id": "harbour",
   "title": "The Harbour at Dusk",
   "background": "art/harbour.svg",
+  "music": "audio/waves.wav",
   "layers": [
     { "id": "tomo", "image": "art/tomo-standing.svg", "rect": { "x": 640, "y": 1180, "w": 180, "h": 380 } },
     { "id": "box-open", "image": "art/box-open.svg", "rect": { "x": 580, "y": 1650, "w": 170, "h": 160 }, "if": { "solved": "tackle-box" } }
