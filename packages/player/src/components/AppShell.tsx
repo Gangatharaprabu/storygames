@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { channel } from "../config.ts";
 import { href, navigate, type Route } from "../router.ts";
 import { useProfile } from "../state.ts";
 import { Icon, type IconName } from "./Icon.tsx";
@@ -37,6 +38,9 @@ export function AppShell({ route, children }: { route: Route; children: ReactNod
           <a className="app-logo" href={href.home()}>
             Storygames
           </a>
+        )}
+        {channel() === "staging" && (
+          <span className="staging-badge" title="You're seeing stories that aren't live yet">Staging</span>
         )}
         <a className="icon-btn" href={href.profile()} aria-label={`Profile: ${profile.name}`}>
           <span className="app-avatar" aria-hidden="true">{profile.avatar}</span>

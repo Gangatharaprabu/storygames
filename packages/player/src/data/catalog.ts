@@ -1,12 +1,13 @@
 import { Catalog, type CatalogEntry, type CatalogSeries } from "@storygames/pack-spec";
+import { catalogPath, contentRoot } from "../config.ts";
 
-/** Where published stories live: same site for now, a CDN later. Paths are relative to it. */
-export const packUrl = (path: string) => new URL(path, new URL("packs/", location.href.split("#")[0])).href;
+/** Every path in the catalog (packs, covers, portraits) is relative to the content root. */
+export const packUrl = (path: string) => new URL(path, contentRoot()).href;
 
 let pending: Promise<Catalog> | undefined;
 
 export function loadCatalog(): Promise<Catalog> {
-  pending ??= fetch(packUrl("catalog.json"), { cache: "no-cache" })
+  pending ??= fetch(packUrl(catalogPath()), { cache: "no-cache" })
     .then((r) => {
       if (!r.ok) throw new Error(`could not load the story list (${r.status})`);
       return r.json();

@@ -3,10 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "bin": { "storygames": "./bin/storygames.mjs" },
-  "exports": { ".": "./src/build.ts" },
-  "scripts": { "typecheck": "tsc -p ." },
+  "bin": {
+    "storygames": "./bin/storygames.mjs"
+  },
+  "exports": {
+    ".": "./src/build.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1157.0",
     "@storygames/pack-spec": "workspace:*",
     "inkjs": "^2.4.0",
     "sharp": "^0.35.0",

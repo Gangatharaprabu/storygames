@@ -6,19 +6,49 @@ import { SeriesSource } from "./source.ts";
 /** Folder inside the packs dir where build-all puts series descriptions. */
 export const SERIES_DIR = "_series";
 
+export interface CatalogInput {
+  /** Path of the pack's folder, relative to where the catalog lives (e.g. `the-last-ferry/`). */
+  folder: string;
+  pack: StoryPack;
+  publishedAt: string;
+}
+
 /**
  * Scans `packsDir/<folder>/pack.json` (and `packsDir/_series/*.json`) and writes
- * `packsDir/catalog.json`: the stories, series and characters the app shows.
- * Paths in the catalog are relative to `packsDir`.
+ * `packsDir/catalog.json`. Used for local builds; publishing uses buildCatalog directly.
  */
 export function writeCatalog(packsDir: string): Catalog {
-  const stories: CatalogEntry[] = [];
-  const characters = new Map<string, CatalogCharacter>();
-
+  const inputs: CatalogInput[] = [];
   for (const folder of readdirSync(packsDir).sort()) {
     const file = join(packsDir, folder, "pack.json");
     if (!statSync(join(packsDir, folder)).isDirectory() || !existsSync(file)) continue;
-    const pack = StoryPack.parse(JSON.parse(readFileSync(file, "utf8")));
+    inputs.push({
+      folder: `${folder}/`,
+      pack: StoryPack.parse(JSON.parse(readFileSync(file, "utf8"))),
+      publishedAt: statSync(file).mtime.toISOString(),
+    });
+  }
+  const series: Array<{ id: string; title: string; synopsis: string }> = [];
+  const seriesDir = join(packsDir, SERIES_DIR);
+  if (existsSync(seriesDir)) {
+    for (const f of readdirSync(seriesDir).filter((n) => n.endsWith(".json"))) {
+      series.push(SeriesSource.parse(JSON.parse(readFileSync(join(seriesDir, f), "utf8"))));
+    }
+  }
+  const catalog = buildCatalog(inputs, series);
+  writeFileSync(join(packsDir, "catalog.json"), JSON.stringify(catalog, null, 2));
+  return catalog;
+}
+
+/**
+ * The stories, series and characters the app shows, from a set of packs.
+ * Every path in the result is relative to where the catalog will live.
+ */
+export function buildCatalog(inputs: CatalogInput[], seriesInfo: Array<{ id: string; title: string; synopsis: string }>): Catalog {
+  const stories: CatalogEntry[] = [];
+  const characters = new Map<string, CatalogCharacter>();
+
+  for (const { folder, pack, publishedAt } of inputs) {
     const m = pack.manifest;
     const start = pack.scenes.find((s) => s.id === pack.startScene)!;
     stories.push({
@@ -30,18 +60,18 @@ export function writeCatalog(packsDir: string): Catalog {
       tags: m.tags,
       estimatedMinutes: m.estimatedMinutes,
       minEngine: m.minEngine,
-      pack: `${folder}/`,
-      cover: `${folder}/${m.cover ?? start.background}`,
+      pack: folder,
+      cover: `${folder}${m.cover ?? start.background}`,
       cast: pack.cast.map((member) => {
         const c = pack.characters.find((x) => x.id === member.character)!;
-        return { id: c.id, name: c.name, role: member.role, portrait: `${folder}/${c.portraits[c.defaultExpression]}` };
+        return { id: c.id, name: c.name, role: member.role, portrait: `${folder}${c.portraits[c.defaultExpression]}` };
       }),
       continuesFrom: [...new Set([...m.follows, ...Object.values(pack.imports).map((i) => i.from)])],
-      publishedAt: statSync(file).mtime.toISOString(),
+      publishedAt,
     });
     for (const c of pack.characters) {
       const existing = characters.get(c.id);
-      const portrait = `${folder}/${c.portraits[c.defaultExpression]}`;
+      const portrait = `${folder}${c.portraits[c.defaultExpression]}`;
       // The most recently built story with a bio decides how the character is described.
       characters.set(c.id, {
         id: c.id,
@@ -60,15 +90,8 @@ export function writeCatalog(packsDir: string): Catalog {
   );
   const order = new Map(stories.map((s, i) => [s.id, i]));
 
-  // Series: described by _series/<id>.json when there is one, otherwise by their episodes.
-  const described = new Map<string, { title: string; synopsis: string }>();
-  const seriesDir = join(packsDir, SERIES_DIR);
-  if (existsSync(seriesDir)) {
-    for (const f of readdirSync(seriesDir).filter((n) => n.endsWith(".json"))) {
-      const s = SeriesSource.parse(JSON.parse(readFileSync(join(seriesDir, f), "utf8")));
-      described.set(s.id, s);
-    }
-  }
+  // Series: described by their series.json when there is one, otherwise by their episodes.
+  const described = new Map(seriesInfo.map((s) => [s.id, s]));
   const series = new Map<string, CatalogSeries>();
   for (const s of stories) {
     if (!s.series) continue;
@@ -108,7 +131,7 @@ export function writeCatalog(packsDir: string): Catalog {
   stories.forEach((s, i) => order.set(s.id, i));
   const orderedSeries = [...series.values()].sort((a, b) => order.get(a.stories[0]!)! - order.get(b.stories[0]!)!);
 
-  const catalog = Catalog.parse({
+  return Catalog.parse({
     catalogFormat: 1,
     generatedAt: new Date().toISOString(),
     stories,
@@ -117,6 +140,4 @@ export function writeCatalog(packsDir: string): Catalog {
       .map((c) => ({ ...c, stories: c.stories.sort((a, b) => order.get(a)! - order.get(b)!) }))
       .sort((a, b) => b.stories.length - a.stories.length || a.name.localeCompare(b.name)),
   });
-  writeFileSync(join(packsDir, "catalog.json"), JSON.stringify(catalog, null, 2));
-  return catalog;
 }

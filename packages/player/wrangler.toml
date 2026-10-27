@@ -1,0 +1,10 @@
+# Cloudflare Pages project for the player app.
+# Deployed by .github/workflows/cloudflare.yml (wrangler pages deploy).
+name = "storygames"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+# Published stories (written by `storygames publish`), served at /content/* by functions/.
+[[r2_buckets]]
+binding = "CONTENT"
+bucket_name = "storygames-content"
