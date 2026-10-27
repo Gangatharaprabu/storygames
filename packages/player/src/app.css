@@ -436,3 +436,28 @@ h1, h2, h3 { font-family: var(--font); line-height: 1.15; letter-spacing: -0.02e
 }
 
 .staging-badge { margin-left: auto; margin-right: 10px; padding: 3px 10px; border-radius: 999px; background: #ffcc4d; color: #000; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* Account */
+.account { display: grid; gap: 10px; justify-items: start; }
+.account p { margin: 0; }
+.account-form { display: grid; gap: 8px; width: 100%; max-width: 380px; }
+.account-form input {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+}
+.account-form input#code { letter-spacing: 0.3em; font-size: 22px; font-weight: 600; }
+.account-form input:focus { outline: none; border-color: rgb(255 255 255 / 0.55); }
+.btn-link { justify-self: start; padding: 4px 0; border: 0; background: none; color: var(--muted); font: inherit; text-decoration: underline; cursor: pointer; }
+.small { font-size: 13px; }
+.error { color: #ff8a8a; }
+.sync { font-size: 14px; color: var(--muted); }
+.sync-synced { color: #7ee2a8; }
+.sync-offline { color: #ffcc4d; }
+.account-card { margin-top: 20px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.profile .account-card h2 { margin: 0 0 8px; }

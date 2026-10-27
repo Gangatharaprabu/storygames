@@ -9,9 +9,13 @@ import type { FlagValue } from "@storygames/pack-spec";
  */
 export interface ProfileData {
   version: 1;
-  profile: { id: string; name: string; avatar: string; createdAt: string };
+  profile: { id: string; name: string; avatar: string; createdAt: string; updatedAt?: string };
   /** storyId → when it was saved */
   saved: Record<string, string>;
+  /** storyId → when it was un-saved (so syncing doesn't bring it back) */
+  unsaved?: Record<string, string>;
+  /** When "Reset all progress" was last used; older data from other devices is dropped. */
+  resetAt?: string;
   progress: Record<string, StoryProgress>;
   /** storyId → that story's exported flags, from the last time it was finished */
   saga: Record<string, Record<string, FlagValue>>;
@@ -67,13 +71,20 @@ export class ProfileStore {
     };
   };
 
-  rename(name: string) {
+  rename(name: string, now = new Date()) {
     const trimmed = name.trim().slice(0, 40);
-    if (trimmed) this.update((d) => ({ ...d, profile: { ...d.profile, name: trimmed } }));
+    if (trimmed && trimmed !== this.data.profile.name) {
+      this.update((d) => ({ ...d, profile: { ...d.profile, name: trimmed, updatedAt: now.toISOString() } }));
+    }
   }
 
-  setAvatar(avatar: string) {
-    this.update((d) => ({ ...d, profile: { ...d.profile, avatar } }));
+  setAvatar(avatar: string, now = new Date()) {
+    this.update((d) => ({ ...d, profile: { ...d.profile, avatar, updatedAt: now.toISOString() } }));
+  }
+
+  /** Replace everything (after merging with another device). */
+  replace(data: ProfileData) {
+    this.update(() => data);
   }
 
   isSaved = (storyId: string) => storyId in this.data.saved;
@@ -81,9 +92,15 @@ export class ProfileStore {
   toggleSaved(storyId: string, now = new Date()) {
     this.update((d) => {
       const saved = { ...d.saved };
-      if (storyId in saved) delete saved[storyId];
-      else saved[storyId] = now.toISOString();
-      return { ...d, saved };
+      const unsaved = { ...d.unsaved };
+      if (storyId in saved) {
+        delete saved[storyId];
+        unsaved[storyId] = now.toISOString();
+      } else {
+        saved[storyId] = now.toISOString();
+        delete unsaved[storyId];
+      }
+      return { ...d, saved, unsaved };
     });
   }
 
@@ -144,9 +161,9 @@ export class ProfileStore {
     });
   }
 
-  resetAll() {
+  resetAll(now = new Date()) {
     const keep = this.data.profile;
-    this.update(() => ({ ...newProfile(), profile: keep }));
+    this.update(() => ({ ...newProfile(), profile: keep, resetAt: now.toISOString() }));
   }
 
   private update(fn: (d: ProfileData) => ProfileData) {
@@ -182,4 +199,73 @@ export function localBackend(key = "sg:profile"): ProfileBackend {
 export function percentDone(state: { visited: string[]; solved: string[] }, totals: { scenes: number; puzzles: number }) {
   const total = totals.scenes + totals.puzzles;
   return total ? ((state.visited.length + state.solved.length) / total) * 100 : 0;
+}
+
+const later = (a?: string, b?: string) => ((a ?? "") >= (b ?? "") ? a : b);
+
+/**
+ * Combine the same player's data from two devices (or device and cloud). Nothing a player
+ * did on either side is lost, and the most recent decision wins:
+ * - name/avatar: the most recently changed (a never-changed default never wins)
+ * - saved: per story, the latest save or un-save
+ * - progress: per story, the most recently played run, keeping the best counts
+ *   (times finished, first finish, play time)
+ * - saga: from whichever side finished that story most recently
+ * - "Reset all progress" on either side drops anything older than the reset
+ */
+export function mergeProfiles(a: ProfileData, b: ProfileData): ProfileData {
+  const resetAt = later(a.resetAt, b.resetAt);
+  const fresh = (at?: string) => !resetAt || (at ?? "") > resetAt;
+
+  // Only a name/avatar the player actually chose counts: a fresh device's default
+  // "Traveller" must never replace the name on their account.
+  const pa = a.profile.updatedAt ?? "";
+  const pb = b.profile.updatedAt ?? "";
+  const profile = pb > pa ? { ...b.profile, id: a.profile.id } : a.profile;
+
+  const saved: Record<string, string> = {};
+  const unsaved: Record<string, string> = {};
+  const ids = new Set([...Object.keys(a.saved), ...Object.keys(b.saved), ...Object.keys(a.unsaved ?? {}), ...Object.keys(b.unsaved ?? {})]);
+  for (const id of ids) {
+    const s = later(a.saved[id], b.saved[id]);
+    const u = later(a.unsaved?.[id], b.unsaved?.[id]);
+    if (s && (!u || s > u)) {
+      if (fresh(s)) saved[id] = s;
+    } else if (u) unsaved[id] = u;
+  }
+
+  const progress: Record<string, StoryProgress> = {};
+  const saga: ProfileData["saga"] = {};
+  for (const id of new Set([...Object.keys(a.progress), ...Object.keys(b.progress)])) {
+    const x = a.progress[id];
+    const y = b.progress[id];
+    let p: StoryProgress;
+    if (!x || !y) p = (x ?? y)!;
+    else {
+      const recent = y.lastPlayedAt > x.lastPlayedAt ? y : x;
+      p = {
+        ...recent,
+        startedAt: x.startedAt < y.startedAt ? x.startedAt : y.startedAt,
+        finishedAt: later(x.finishedAt, y.finishedAt),
+        timesFinished: Math.max(x.timesFinished, y.timesFinished),
+        secondsPlayed: Math.max(x.secondsPlayed, y.secondsPlayed),
+      };
+      if (!p.finishedAt) delete p.finishedAt;
+    }
+    if (!fresh(p.lastPlayedAt)) continue;
+    progress[id] = p;
+    const fromB = (y?.finishedAt ?? "") > (x?.finishedAt ?? "");
+    const exports = fromB ? (b.saga[id] ?? a.saga[id]) : (a.saga[id] ?? b.saga[id]);
+    if (exports) saga[id] = exports;
+  }
+
+  return {
+    version: 1,
+    profile,
+    saved,
+    ...(Object.keys(unsaved).length ? { unsaved } : {}),
+    progress,
+    saga,
+    ...(resetAt ? { resetAt } : {}),
+  };
 }

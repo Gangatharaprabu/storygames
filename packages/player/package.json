@@ -16,6 +16,7 @@
     "@storygames/pack-spec": "workspace:*",
     "@storygames/puzzles": "workspace:*",
     "@storygames/ui": "workspace:*",
+    "@supabase/supabase-js": "^2.118.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

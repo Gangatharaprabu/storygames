@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Catalog } from "@storygames/pack-spec";
+import { AccountPanel } from "../components/AccountPanel.tsx";
 import { AVATARS } from "../data/profile.ts";
 import { href } from "../router.ts";
 import { profileStore, useProfile } from "../state.ts";
@@ -20,7 +21,7 @@ export function Profile({ catalog }: { catalog: Catalog }) {
     .sort((a, b) => progress[b.id]!.finishedAt!.localeCompare(progress[a.id]!.finishedAt!));
 
   const reset = () => {
-    if (!window.confirm("Reset all progress? Saved stories and finished stories will be cleared on this device.")) return;
+    if (!window.confirm("Reset all progress? Saved and finished stories will be cleared (on all your devices, if you're signed in).")) return;
     catalog.stories.forEach((s) => clearSave(s.id));
     profileStore.resetAll();
   };
@@ -67,6 +68,11 @@ export function Profile({ catalog }: { catalog: Catalog }) {
         </div>
       )}
 
+      <section className="account-card" aria-labelledby="account">
+        <h2 id="account">Account</h2>
+        <AccountPanel />
+      </section>
+
       <dl className="stats">
         <div><dt>Finished</dt><dd>{finished}</dd></div>
         <div><dt>In progress</dt><dd>{playing}</dd></div>
@@ -89,9 +95,6 @@ export function Profile({ catalog }: { catalog: Catalog }) {
       )}
 
       <h2>Your data</h2>
-      <p className="muted">
-        Your profile and progress are saved on this device. Accounts that sync between your phone and computer are coming.
-      </p>
       <button type="button" className="btn btn-danger" onClick={reset}>Reset all progress</button>
     </section>
   );
