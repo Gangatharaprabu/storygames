@@ -66,6 +66,22 @@ tests/         integration tests: build the test story and play every route head
 scripts/       check-boundaries.mjs enforces which package may import which
 ```
 
+## Publishing (Cloudflare + Supabase)
+
+The app is hosted on Cloudflare Pages; stories are published to Cloudflare R2 separately
+from the app (staging → live, fixed versions, rollback); optional accounts on Supabase sync
+progress across devices. One-time setup: [docs/setup-cloudflare-supabase.md](docs/setup-cloudflare-supabase.md).
+
+| Command | What it does |
+|---|---|
+| `pnpm storygames publish <story-dir> --library <dir>` | Upload a story version to staging |
+| `pnpm storygames promote <story-id>` | Put the staging version live |
+| `pnpm storygames rollback <story-id> --to <version>` | Go back to an earlier live version |
+| `pnpm storygames unpublish <story-id> --channel live` | Take a story down (files kept) |
+| `pnpm storygames status` | What's in staging and live |
+
+The same actions run from GitHub: Actions → **Stories** → Run workflow.
+
 ## Online preview
 
 Every push to `claude/zealous-tesla-3wwgom` or `main` runs `pnpm check`, builds the player

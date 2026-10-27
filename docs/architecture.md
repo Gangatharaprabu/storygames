@@ -54,6 +54,24 @@ packs/<story-id>/pack.json  one story
 - Game saves are written at the last calm moment (nothing open or queued), so leaving in
   the middle of a conversation replays it on return instead of skipping it.
 
+## Hosting and publishing
+
+```
+GitHub push ──► Cloudflare Pages (the app)          https://<project>.pages.dev
+                   └─ /content/*  Pages Function ──► R2 bucket storygames-content
+storygames publish ───────────────────────────────►   packs/<story>/<version>/…  (immutable)
+                                                       series/<id>.json
+                                                       channels/{staging,live}.json  (pins)
+                                                       catalogs/{staging,live}.json  (what the app reads)
+Players (optional sign-in) ◄──► Supabase: profiles, player_state (merged JSON), game_saves (RLS)
+```
+
+- The app build doesn't contain stories (`VITE_CONTENT_MODE=published`); publishing never
+  redeploys the app, and app deploys never change what stories are live.
+- `?channel=staging` shows the staging catalog (with a badge) for checking before promote.
+- Sync merges device and account (`mergeProfiles`) on sign-in and before every push, so two
+  devices never overwrite each other; offline never blocks play.
+
 ## Engine model
 
 - **Scenes**: a portrait background (1080×1920 canvas units), conditional layers, and hotspots.
