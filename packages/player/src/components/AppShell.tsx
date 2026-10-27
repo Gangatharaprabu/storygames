@@ -48,7 +48,7 @@ export function AppShell({ route, children }: { route: Route; children: ReactNod
           const active = route.name === t.route;
           return (
             <a key={t.route} href={t.to} aria-label={t.label} aria-current={active ? "page" : undefined}>
-              <Icon name={t.icon} filled={active && t.icon !== "search"} />
+              <Icon name={t.icon} filled={active && t.icon !== "search"} size={28} />
             </a>
           );
         })}

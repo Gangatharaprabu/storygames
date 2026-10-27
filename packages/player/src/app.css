@@ -5,7 +5,7 @@
   --bg: #000;
   --surface: #121214;
   --surface-2: #1c1c20;
-  --glass: rgb(28 28 32 / 0.72);
+  --glass: rgb(24 24 28 / 0.86);
   --line: rgb(255 255 255 / 0.1);
   --text: #fff;
   --muted: #9b9ba5;
@@ -15,7 +15,7 @@
   --font: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
   /* Big titles (story, series, character names, page titles). */
   --font-display: var(--font);
-  --tabbar: 64px;
+  --tabbar: 70px;
   color-scheme: dark;
 }
 
@@ -78,12 +78,13 @@ h1, h2, h3 { font-family: var(--font); line-height: 1.15; letter-spacing: -0.02e
 }
 .tabbar a { position: relative; display: grid; place-items: center; color: var(--muted); }
 .tabbar a[aria-current="page"] { color: #fff; }
+.tabbar .icon { stroke-width: 2; }
 .tabbar a[aria-current="page"]::after {
   content: "";
   position: absolute;
-  bottom: 9px;
-  width: 4px;
-  height: 4px;
+  bottom: 8px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #fff;
 }
