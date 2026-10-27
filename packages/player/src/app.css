@@ -121,7 +121,7 @@ h1, h2 { font-family: var(--display); line-height: 1.15; }
 }
 
 /* Story card */
-.card { display: grid; gap: 8px; text-decoration: none; border-radius: var(--radius); }
+.card { display: grid; align-content: start; gap: 8px; text-decoration: none; border-radius: var(--radius); }
 .card-art {
   position: relative;
   aspect-ratio: 3 / 4;
