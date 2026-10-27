@@ -1,0 +1,11 @@
+{
+  "name": "Storygames",
+  "short_name": "Storygames",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#1d1a2f",
+  "theme_color": "#1d1a2f",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

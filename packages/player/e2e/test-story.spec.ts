@@ -69,3 +69,21 @@ test("resumes after a reload", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Noticeboard" })).toBeAttached();
   await expect(page.getByTestId("dialogue")).toBeHidden();
 });
+
+test.describe("phone held sideways", () => {
+  test.use({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
+
+  test("asks the player to turn the phone upright", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByText("Turn your phone upright to play.")).toBeVisible();
+  });
+});
+
+test("shows tap markers on hotspots only when the scene is interactive", async ({ page }) => {
+  await page.goto("/");
+  const marker = page.locator('[data-hotspot="tomo"] .sg-hotspot-marker');
+  await expect(page.getByTestId("dialogue")).toBeVisible();
+  await expect(marker).toBeHidden();
+  await finishDialogue(page);
+  await expect(marker).toBeVisible();
+});

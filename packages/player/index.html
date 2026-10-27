@@ -2,11 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#1d1a2f" />
+    <!-- Added to the home screen, it opens full screen like an app. -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Storygames" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <title>Storygames</title>
     <style>
-      html, body { margin: 0; height: 100%; background: #1d1a2f; color: #f6efe6; font-family: system-ui, sans-serif; }
+      html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; background: #1d1a2f; color: #f6efe6; font-family: system-ui, sans-serif; }
     </style>
   </head>
   <body>

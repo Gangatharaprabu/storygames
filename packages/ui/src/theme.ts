@@ -14,7 +14,7 @@ export function themeVars(theme: Theme, assetUrl: (path: string) => string): CSS
     "--sg-font-body": theme.fonts.body,
     "--sg-font-display": theme.fonts.display,
     "--sg-radius": `${theme.radius}px`,
-    "--sg-grade": theme.colorGrade ?? "none",
+    "--sg-grade": theme.colorGrade ?? "brightness(1)",
     "--sg-dialogue-frame": theme.dialogueFrame ? `url(${assetUrl(theme.dialogueFrame)})` : "none",
   } as CSSProperties;
 }

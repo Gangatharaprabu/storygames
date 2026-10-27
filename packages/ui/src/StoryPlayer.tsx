@@ -40,6 +40,7 @@ export function StoryPlayer({ session, assetUrl, puzzleViews, onRestart }: Story
 
   return (
     <div className="sg-viewport" style={themeVars(theme, assetUrl)}>
+      <div className="sg-backdrop" aria-hidden="true" style={{ backgroundImage: `url(${assetUrl(view.scene.background)})` }} />
       <main className="sg-stage" aria-label={manifest.title}>
         <SceneView view={view} assetUrl={assetUrl} onHotspot={(id) => session.activateHotspot(id)} />
 
@@ -83,6 +84,10 @@ export function StoryPlayer({ session, assetUrl, puzzleViews, onRestart }: Story
           </div>
         )}
       </main>
+      <div className="sg-rotate" role="alert">
+        <span className="sg-rotate-icon" aria-hidden="true">📱</span>
+        <p>Turn your phone upright to play.</p>
+      </div>
     </div>
   );
 }

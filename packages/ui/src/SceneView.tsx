@@ -29,7 +29,9 @@ export function SceneView({
           disabled={view.busy || view.completed}
           data-hotspot={h.id}
           onClick={() => onHotspot(h.id)}
-        />
+        >
+          <span className="sg-hotspot-marker" aria-hidden="true" />
+        </button>
       ))}
     </div>
   );
