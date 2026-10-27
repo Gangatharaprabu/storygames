@@ -1,10 +1,12 @@
 import { AppShell } from "./components/AppShell.tsx";
+import { Character } from "./pages/Character.tsx";
 import { Home } from "./pages/Home.tsx";
 import { Library } from "./pages/Library.tsx";
 import { NotFound } from "./pages/NotFound.tsx";
 import { Play } from "./pages/Play.tsx";
 import { Profile } from "./pages/Profile.tsx";
 import { Search } from "./pages/Search.tsx";
+import { Series } from "./pages/Series.tsx";
 import { StoryDetail } from "./pages/StoryDetail.tsx";
 import { useRoute } from "./router.ts";
 import { useCatalog } from "./state.ts";
@@ -35,6 +37,8 @@ export function App() {
       {route.name === "library" && <Library catalog={c} />}
       {route.name === "profile" && <Profile catalog={c} />}
       {route.name === "story" && <StoryDetail key={route.id} catalog={c} id={route.id} />}
+      {route.name === "series" && <Series key={route.id} catalog={c} id={route.id} />}
+      {route.name === "character" && <Character key={route.id} catalog={c} id={route.id} />}
       {route.name === "not-found" && <NotFound />}
     </AppShell>
   );

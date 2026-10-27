@@ -56,6 +56,9 @@ export function validatePack(input: unknown): ValidationResult {
       errors.push({ path: `characters.${c.id}`, message: `no portrait for default expression "${c.defaultExpression}"` });
     }
   }
+  if (pack.manifest.follows.includes(pack.manifest.id)) {
+    errors.push({ path: "manifest.follows", message: "a story can't follow itself" });
+  }
   for (const name of pack.exports) {
     if (!(name in pack.flags)) {
       errors.push({ path: "exports", message: `exported flag "${name}" is not declared in flags` });

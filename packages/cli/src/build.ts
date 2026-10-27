@@ -78,7 +78,7 @@ export async function buildStory(opts: BuildOptions): Promise<BuildResult> {
       portraits[expr] = to;
       portraitCopies.push([join(dir, file), to]);
     }
-    characters.push({ id: lib.id, name: lib.name, color: lib.color, variant: member.variant, defaultExpression: variant.defaultExpression, portraits });
+    characters.push({ id: lib.id, name: lib.name, bio: lib.bio, color: lib.color, variant: member.variant, defaultExpression: variant.defaultExpression, portraits });
   }
 
   const ink = compileInk(join(storyDir, "narrative"), story.narrative, errors, warnings);
@@ -93,6 +93,7 @@ export async function buildStory(opts: BuildOptions): Promise<BuildResult> {
       synopsis: story.synopsis ?? "",
       series: story.series,
       tags: story.tags,
+      follows: story.follows,
       orientation: "portrait",
       estimatedMinutes: story.estimatedMinutes,
       minEngine: story.minEngine,

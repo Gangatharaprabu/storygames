@@ -1,0 +1,31 @@
+{
+  "id": "signal",
+  "type": "combination-lock",
+  "presentation": "fullscreen",
+  "title": "The Signal Lamp",
+  "prompt": "Answer with the same pattern: long flashes ●, short flashes ○.",
+  "config": {
+    "dials": 4,
+    "symbols": [
+      "●",
+      "○"
+    ],
+    "solution": [
+      "●",
+      "○",
+      "○",
+      "●"
+    ]
+  },
+  "hints": [
+    "Watch the boat's light again.",
+    "Long, short, short, long.",
+    "● ○ ○ ●"
+  ],
+  "onSolve": [
+    {
+      "do": "goto",
+      "scene": "dawn"
+    }
+  ]
+}

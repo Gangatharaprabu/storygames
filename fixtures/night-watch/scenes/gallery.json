@@ -1,0 +1,67 @@
+{
+  "id": "gallery",
+  "title": "The Lamp Gallery",
+  "background": "art/gallery.svg",
+  "music": "audio/waves.wav",
+  "onEnter": [
+    {
+      "do": "dialogue",
+      "knot": "arrival",
+      "if": {
+        "not": {
+          "flag": "arrived"
+        }
+      }
+    },
+    {
+      "do": "set",
+      "flag": "arrived"
+    }
+  ],
+  "hotspots": [
+    {
+      "id": "boat",
+      "label": "A boat's blinking light",
+      "rect": {
+        "x": 120,
+        "y": 1080,
+        "w": 300,
+        "h": 220
+      },
+      "actions": [
+        {
+          "do": "dialogue",
+          "knot": "boat"
+        }
+      ]
+    },
+    {
+      "id": "lamp",
+      "label": "The signal lamp",
+      "rect": {
+        "x": 640,
+        "y": 700,
+        "w": 300,
+        "h": 420
+      },
+      "actions": [
+        {
+          "do": "dialogue",
+          "knot": "lamp_unsure",
+          "if": {
+            "not": {
+              "flag": "read_signal"
+            }
+          }
+        },
+        {
+          "do": "puzzle",
+          "puzzle": "signal",
+          "if": {
+            "flag": "read_signal"
+          }
+        }
+      ]
+    }
+  ]
+}

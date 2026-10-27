@@ -8,6 +8,8 @@ import { AssetPath, Id } from "./common.ts";
 export const CharacterSnapshot = z.object({
   id: Id,
   name: z.string(),
+  /** Short description, shown on the character's page. */
+  bio: z.string().optional(),
   variant: z.string(),
   /** Accent colour for this character's name/dialogue. */
   color: z.string(),

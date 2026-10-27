@@ -10,6 +10,8 @@ export type Route =
   | { name: "library" }
   | { name: "profile" }
   | { name: "story"; id: string }
+  | { name: "series"; id: string }
+  | { name: "character"; id: string }
   | { name: "play"; id: string }
   | { name: "not-found" };
 
@@ -28,6 +30,10 @@ export function parseRoute(hash: string): Route {
       return { name: "profile" };
     case "story":
       return parts[1] ? { name: "story", id: parts[1] } : { name: "not-found" };
+    case "series":
+      return parts[1] ? { name: "series", id: parts[1] } : { name: "not-found" };
+    case "character":
+      return parts[1] ? { name: "character", id: parts[1] } : { name: "not-found" };
     case "play":
       return parts[1] ? { name: "play", id: parts[1] } : { name: "not-found" };
     default:
@@ -42,6 +48,8 @@ export const href = {
   profile: () => "#/profile",
   story: (id: string) => `#/story/${encodeURIComponent(id)}`,
   play: (id: string) => `#/play/${encodeURIComponent(id)}`,
+  series: (id: string) => `#/series/${encodeURIComponent(id)}`,
+  character: (id: string) => `#/character/${encodeURIComponent(id)}`,
 };
 
 /** A full link to a story, for sharing. */

@@ -14,6 +14,9 @@
     "mystery",
     "short"
   ],
+  "follows": [
+    "the-last-ferry"
+  ],
   "estimatedMinutes": 3,
   "minEngine": "0.1.0",
   "cast": [

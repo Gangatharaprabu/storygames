@@ -1,4 +1,4 @@
-import type { CatalogEntry } from "@storygames/pack-spec";
+import type { CatalogCharacter, CatalogEntry, CatalogSeries } from "@storygames/pack-spec";
 
 /**
  * Matches every word of the query against title, synopsis, series, tags and character
@@ -23,6 +23,26 @@ export function searchStories(stories: CatalogEntry[], query: string, tags: stri
     if (all) scored.push({ story, score });
   }
   return scored.sort((a, b) => b.score - a.score).map((s) => s.story);
+}
+
+/** Characters whose name (or bio) matches every word. */
+export function searchCharacters(characters: CatalogCharacter[], query: string): CatalogCharacter[] {
+  const words = normalise(query).split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  return characters.filter((c) => {
+    const text = normalise(`${c.name} ${c.bio}`);
+    return words.every((w) => text.includes(w));
+  });
+}
+
+/** Series whose title (or description) matches every word. */
+export function searchSeries(series: CatalogSeries[], query: string): CatalogSeries[] {
+  const words = normalise(query).split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  return series.filter((s) => {
+    const text = normalise(`${s.title} ${s.synopsis}`);
+    return words.every((w) => text.includes(w));
+  });
 }
 
 export function allTags(stories: CatalogEntry[]): string[] {

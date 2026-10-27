@@ -40,11 +40,13 @@ runs in the player, in Studio preview and in tests.
 ## The app
 
 ```
-packs/catalog.json          list of stories (CLI: build-all / catalog)
+packs/catalog.json          stories, series (with where they branched from) and characters
+                            across all stories (CLI: build-all / catalog)
 packs/<story-id>/pack.json  one story
 ```
 
-- Hash routes (`#/`, `#/search`, `#/library`, `#/profile`, `#/story/<id>`, `#/play/<id>`),
+- Hash routes (`#/`, `#/search`, `#/library`, `#/profile`, `#/story/<id>`, `#/series/<id>`,
+  `#/character/<id>`, `#/play/<id>`),
   so shared links work on any static host and inside the native app.
 - `ProfileStore` holds the profile, saved stories, progress and the saga (exports of
   finished stories, read by sequels). It saves through a `ProfileBackend`: on the device

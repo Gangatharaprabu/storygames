@@ -12,6 +12,11 @@ test("home shows series and standalone stories", async ({ page }) => {
   await expect(series.getByRole("link", { name: /The Last Ferry/ })).toBeVisible();
   await expect(series.getByRole("link", { name: /The Island Lighthouse/ })).toBeVisible();
   await expect(page.getByRole("region", { name: "Short stories" }).getByRole("link", { name: /Clockmaker/ })).toBeVisible();
+  // The spin-off series says where it came from.
+  const spinOff = page.getByRole("region", { name: "Lighthouse Tales" });
+  await expect(spinOff.getByText("Continues from")).toBeVisible();
+  await expect(spinOff.getByRole("link", { name: "Mira's Journey" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Characters" }).getByRole("link", { name: "Hana" })).toBeVisible();
   await page.screenshot({ path: "test-results/app-01-home.png" });
 });
 
@@ -19,13 +24,16 @@ test("search by title, character and tag", async ({ page }) => {
   await page.goto("/#/search");
   const box = page.getByRole("searchbox", { name: "Search stories" });
   await box.fill("tomo");
-  await expect(page.getByRole("status")).toHaveText("1 story");
+  await expect(page.getByRole("status")).toHaveText("2 stories"); // he is in two series
   await expect(page.locator(".grid").getByRole("link", { name: /The Last Ferry/ })).toBeVisible();
+  await expect(page.locator('.characters [data-character="tomo"]')).toBeVisible();
+  await box.fill("clock");
+  await expect(page.getByRole("status")).toHaveText("1 story");
   await box.fill("");
   await page.getByRole("button", { name: "mystery" }).click();
   await expect(page.getByRole("status")).toHaveText("2 stories");
   await box.fill("nothing like this");
-  await expect(page.getByRole("status")).toHaveText("No stories match.");
+  await expect(page.getByRole("status")).toHaveText("Nothing matches.");
   await page.screenshot({ path: "test-results/app-02-search.png" });
 });
 
@@ -89,4 +97,45 @@ test("share copies a link that opens the story", async ({ page, context }) => {
 test("unknown story shows a friendly not-found page", async ({ page }) => {
   await page.goto("/#/story/nope");
   await expect(page.getByRole("heading", { name: "Not found" })).toBeVisible();
+});
+
+test("browse by character: from a story to the character, to their other stories", async ({ page }) => {
+  await page.goto("/#/story/the-last-ferry");
+  await page.locator('[data-character="tomo"]').click();
+  await expect(page.getByRole("heading", { name: "Tomo", level: 1 })).toBeVisible();
+  await expect(page.getByText("In 2 stories")).toBeVisible();
+  await expect(page.getByText("Gruff, fair, and fond of his nets.")).toBeVisible();
+  const series = page.getByRole("region", { name: "Series" });
+  await expect(series.getByRole("link", { name: /Mira's Journey/ })).toBeVisible();
+  await expect(series.getByRole("link", { name: /Lighthouse Tales/ })).toBeVisible();
+  await page.screenshot({ path: "test-results/app-06-character.png" });
+  await page.getByRole("region", { name: "Stories with Tomo" }).getByRole("link", { name: /Hana's Night Watch/ }).click();
+  await expect(page.getByRole("heading", { name: "Hana's Night Watch" })).toBeVisible();
+});
+
+test("a sequel that starts a new series shows up on both sides", async ({ page }) => {
+  await page.goto("/#/story/the-island-lighthouse");
+  await expect(page.getByRole("heading", { name: "What happens next" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "New series: Lighthouse Tales" })).toBeVisible();
+  await page.getByRole("link", { name: "New series: Lighthouse Tales" }).click();
+
+  await expect(page.getByRole("heading", { name: "Lighthouse Tales" })).toBeVisible();
+  await expect(page.getByText("Nights on the island with Hana")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Mira's Journey" })).toBeVisible();
+  await page.screenshot({ path: "test-results/app-07-series.png" });
+
+  await page.getByRole("link", { name: "Mira's Journey" }).click();
+  await expect(page.getByRole("heading", { name: "Mira's Journey", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The story continues in" })).toBeVisible();
+  await expect(page.locator('[data-series="lighthouse-tales"]')).toBeVisible();
+  await page.getByRole("link", { name: "Start with episode 1" }).click();
+  await expect(page.getByRole("heading", { name: "The Last Ferry" })).toBeVisible();
+});
+
+test("search finds characters and series too", async ({ page }) => {
+  await page.goto("/#/search?q=hana");
+  await expect(page.locator('.characters [data-character="hana"]')).toBeVisible();
+  await page.getByRole("searchbox").fill("lighthouse tales");
+  await expect(page.locator('[data-series="lighthouse-tales"]')).toBeVisible();
+  await page.screenshot({ path: "test-results/app-08-search-series.png" });
 });

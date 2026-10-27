@@ -1,0 +1,39 @@
+{
+  "id": "hanas-night-watch",
+  "version": "0.1.0",
+  "title": "Hana's Night Watch",
+  "synopsis": "The lamp is lit again, but tonight a boat is signalling from the dark. Hana has to answer before it hits the rocks.",
+  "series": {
+    "id": "lighthouse-tales",
+    "title": "Lighthouse Tales",
+    "episode": 1
+  },
+  "tags": [
+    "cosy",
+    "puzzle",
+    "short"
+  ],
+  "follows": [
+    "the-island-lighthouse"
+  ],
+  "estimatedMinutes": 2,
+  "minEngine": "0.1.0",
+  "cast": [
+    {
+      "character": "hana",
+      "role": "protagonist"
+    },
+    {
+      "character": "tomo",
+      "role": "npc"
+    }
+  ],
+  "startScene": "gallery",
+  "flags": {
+    "arrived": false,
+    "read_signal": false
+  },
+  "exports": [
+    "read_signal"
+  ]
+}

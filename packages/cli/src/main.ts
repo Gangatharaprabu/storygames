@@ -1,8 +1,9 @@
-import { existsSync, readdirSync, readFileSync, statSync, watch } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, watch } from "node:fs";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { buildStory, type BuildResult } from "./build.ts";
-import { writeCatalog } from "./catalog.ts";
+import { SERIES_DIR, writeCatalog } from "./catalog.ts";
+import { SeriesSource } from "./source.ts";
 
 const USAGE = `storygames <command> <story-dir> --library <dir> [--out <dir>]
 
@@ -60,6 +61,17 @@ if (command === "build-all") {
       failed++;
       console.error(`✗ ${dir}: ${result.errors.length} error(s)`);
     }
+  }
+  // Series descriptions (series.json anywhere under the folder) go next to the packs.
+  for (const file of findFiles(storyDir, "series.json")) {
+    const parsed = SeriesSource.safeParse(JSON.parse(readFileSync(file, "utf8")));
+    if (!parsed.success) {
+      failed++;
+      console.error(`✗ ${file}: ${parsed.error.issues.map((i) => `${i.path.join(".")} ${i.message}`).join("; ")}`);
+      continue;
+    }
+    mkdirSync(join(values.out!, SERIES_DIR), { recursive: true });
+    copyFileSync(file, join(values.out!, SERIES_DIR, `${parsed.data.id}.json`));
   }
   if (existsSync(values.out!)) {
     const catalog = writeCatalog(values.out!);
@@ -123,4 +135,15 @@ function findStories(root: string): string[] {
     .filter((n) => !n.startsWith(".") && statSync(join(root, n)).isDirectory())
     .sort()
     .flatMap((n) => findStories(join(root, n)));
+}
+
+/** Every file called `name` under `root`. */
+function findFiles(root: string, name: string): string[] {
+  if (!existsSync(root)) return [];
+  return readdirSync(root).flatMap((n) => {
+    const p = join(root, n);
+    if (n.startsWith(".")) return [];
+    if (statSync(p).isDirectory()) return findFiles(p, name);
+    return n === name ? [p] : [];
+  });
 }

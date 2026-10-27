@@ -25,15 +25,40 @@ export const CatalogEntry = z.object({
       portrait: AssetPath,
     }),
   ),
-  /** Flags this story reads from earlier stories (so the app can suggest playing those first). */
+  /** Stories this one carries on from (its `follows`, plus any it imports choices from). */
   continuesFrom: z.array(Id),
   publishedAt: z.string(),
 });
 export type CatalogEntry = z.infer<typeof CatalogEntry>;
 
+export const CatalogSeries = z.object({
+  id: Id,
+  title: z.string(),
+  synopsis: z.string(),
+  /** Episodes in order. */
+  stories: z.array(Id),
+  /** Stories outside this series that it carries on from: where it branched off. */
+  branchesFrom: z.array(Id),
+});
+export type CatalogSeries = z.infer<typeof CatalogSeries>;
+
+/** A character across every published story they appear in. */
+export const CatalogCharacter = z.object({
+  id: Id,
+  name: z.string(),
+  bio: z.string(),
+  color: z.string(),
+  portrait: AssetPath,
+  /** Stories they appear in, in catalog order. */
+  stories: z.array(Id),
+});
+export type CatalogCharacter = z.infer<typeof CatalogCharacter>;
+
 export const Catalog = z.object({
   catalogFormat: z.literal(1),
   generatedAt: z.string(),
   stories: z.array(CatalogEntry),
+  series: z.array(CatalogSeries).default([]),
+  characters: z.array(CatalogCharacter).default([]),
 });
 export type Catalog = z.infer<typeof Catalog>;

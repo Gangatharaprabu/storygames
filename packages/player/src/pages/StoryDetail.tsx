@@ -1,7 +1,8 @@
 import type { Catalog } from "@storygames/pack-spec";
 import { SaveButton, ShareButton } from "../components/Actions.tsx";
-import { storyMeta } from "../components/StoryCard.tsx";
-import { episodesOf, packUrl } from "../data/catalog.ts";
+import { CharacterLink } from "../components/Browse.tsx";
+import { StoryCard, storyMeta } from "../components/StoryCard.tsx";
+import { continuationsOf, episodesOf, packUrl } from "../data/catalog.ts";
 import { href, navigate } from "../router.ts";
 import { profileStore, useProfile } from "../state.ts";
 import { clearSave, loadSave } from "../storage.ts";
@@ -15,6 +16,7 @@ export function StoryDetail({ catalog, id }: { catalog: Catalog; id: string }) {
   const p = progress[story.id];
   const hasSave = Boolean(loadSave(story.id)) && p?.status === "playing";
   const episodes = episodesOf(catalog.stories, story);
+  const next = continuationsOf(catalog.stories, story.id);
   const earlier = story.continuesFrom
     .map((sid) => catalog.stories.find((s) => s.id === sid))
     .filter((s) => s && progress[s.id]?.status !== "finished");
@@ -34,7 +36,7 @@ export function StoryDetail({ catalog, id }: { catalog: Catalog; id: string }) {
       <div className="detail-body">
         {story.series && (
           <p className="kicker">
-            {story.series.title} · Episode {story.series.episode}
+            <a href={href.series(story.series.id)}>{story.series.title}</a> · Episode {story.series.episode}
           </p>
         )}
         <h1>{story.title}</h1>
@@ -82,18 +84,37 @@ export function StoryDetail({ catalog, id }: { catalog: Catalog; id: string }) {
         )}
 
         <h2>Characters</h2>
-        <ul className="cast">
+        <div className="characters">
           {story.cast.map((c) => (
-            <li key={c.id}>
-              <img src={packUrl(c.portrait)} alt="" />
-              <span>{c.name}</span>
-            </li>
+            <CharacterLink key={c.id} character={c} role={c.role === "protagonist" ? "Lead" : undefined} />
           ))}
-        </ul>
+        </div>
+
+        {next.length > 0 && (
+          <>
+            <h2>What happens next</h2>
+            <div className="grid">
+              {next.map((n) => (
+                <div key={n.id} className="next">
+                  <StoryCard story={n} />
+                  {n.series && n.series.id !== story.series?.id && (
+                    <a className="next-label" href={href.series(n.series.id)}>
+                      New series: {n.series.title}
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         {episodes.length > 1 && (
           <>
-            <h2>{story.series!.title}</h2>
+            <h2>
+              <a className="row-link" href={href.series(story.series!.id)}>
+                {story.series!.title} <span aria-hidden="true">›</span>
+              </a>
+            </h2>
             <ol className="episodes">
               {episodes.map((e) => (
                 <li key={e.id} aria-current={e.id === story.id ? "true" : undefined}>

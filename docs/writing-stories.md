@@ -17,6 +17,20 @@ my-story/
 
 `fixtures/test-story` is a complete, small example of every piece.
 
+## Series, sequels and spin-offs
+
+- An episode says which series it belongs to: `"series": { "id": "miras-journey", "title": "Mira's Journey", "episode": 2 }`.
+- Describe a series once in a `series.json` anywhere in your content (e.g.
+  `content/series/miras-journey/series.json`): `{ "id", "title", "synopsis" }`.
+- `"follows": ["the-last-ferry"]` says which stories this one carries on from. When the
+  story it follows is in **another series**, this story starts a **spin-off**: the app
+  shows "Continues from Mira's Journey" on the new series and "The story continues in…"
+  on the old one, and "What happens next" on the story it follows.
+- `imports` (choices carried over from earlier stories) count as following too.
+- Characters are shared: the same library character can lead one series and appear in
+  another. Their page lists every story and series they're in. Give them a `bio` in
+  `character.json`; it's shown on that page.
+
 ## Art
 
 - Drop in PNG or JPG straight from your image tool; the build converts them to WebP and

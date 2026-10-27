@@ -50,7 +50,8 @@ packages/
   engine/      headless runtime: scenes, actions, conditions, ink dialogue, puzzles, saves
   puzzles/     puzzle types; each = logic (headless) + view (skinnable, themed)
   ui/          React player UI: stage, dialogue, puzzle host, inventory (theme-driven)
-  player/      the app: home, search, story pages, my stories, profile, sharing, and play
+  player/      the app: home, search, story / series / character pages, my stories,
+               profile, sharing, and play
                (web now; wrapped with Capacitor later)
   cli/         storygames build | validate (publish comes in Milestone 3)
 content/       your stories and characters (see content/README.md)
@@ -58,7 +59,9 @@ fixtures/
   library/     a tiny character library (Mira, Tomo)
   test-story/        "The Last Ferry", Mira's Journey ep. 1 (two routes)
   island-lighthouse/ "The Island Lighthouse", ep. 2 (reads ep. 1's choice)
+  night-watch/       "Hana's Night Watch", spin-off series Lighthouse Tales ep. 1
   clockmakers-shop/  "The Clockmaker's Shop", a standalone story
+  series/            series.json descriptions
 tests/         integration tests: build the test story and play every route headless
 scripts/       check-boundaries.mjs enforces which package may import which
 ```

@@ -1,0 +1,14 @@
+{
+  "id": "dawn",
+  "title": "Dawn",
+  "background": "art/dawn.svg",
+  "onEnter": [
+    {
+      "do": "dialogue",
+      "knot": "dawn"
+    },
+    {
+      "do": "end"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 import type { Catalog } from "@storygames/pack-spec";
+import { BranchNote, CharacterRow } from "../components/Browse.tsx";
 import { StoryCard, StoryRow } from "../components/StoryCard.tsx";
+import { href } from "../router.ts";
 import { useProfile } from "../state.ts";
 
 export function Home({ catalog }: { catalog: Catalog }) {
@@ -10,13 +12,6 @@ export function Home({ catalog }: { catalog: Catalog }) {
     .filter((s) => progress[s.id]?.status === "playing")
     .sort((a, b) => progress[b.id]!.lastPlayedAt.localeCompare(progress[a.id]!.lastPlayedAt));
 
-  const series = new Map<string, { title: string; stories: typeof stories }>();
-  for (const s of stories) {
-    if (!s.series) continue;
-    const entry = series.get(s.series.id) ?? { title: s.series.title, stories: [] };
-    entry.stories.push(s);
-    series.set(s.series.id, entry);
-  }
   const standalone = stories.filter((s) => !s.series);
   const hasPlayed = Object.keys(progress).length > 0;
 
@@ -39,9 +34,17 @@ export function Home({ catalog }: { catalog: Catalog }) {
         </section>
       )}
 
-      {[...series].map(([id, s]) => (
-        <StoryRow key={id} id={`series-${id}`} title={s.title} stories={s.stories} />
+      {catalog.series.map((series) => (
+        <StoryRow
+          key={series.id}
+          id={`series-${series.id}`}
+          title={series.title}
+          titleHref={href.series(series.id)}
+          note={series.branchesFrom.length > 0 && <BranchNote catalog={catalog} series={series} />}
+          stories={series.stories.map((id) => stories.find((s) => s.id === id)!).filter(Boolean)}
+        />
       ))}
+      <CharacterRow characters={catalog.characters} />
       <StoryRow id="standalone" title="Short stories" stories={standalone} />
     </>
   );

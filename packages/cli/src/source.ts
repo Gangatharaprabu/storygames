@@ -31,6 +31,11 @@ export const StorySource = z.object({
   series: z.object({ id: Id, title: z.string(), episode: z.number().int().positive() }).optional(),
   /** Short labels for browsing and search, e.g. "cosy", "mystery". */
   tags: z.array(z.string()).default([]),
+  /**
+   * Stories this one carries on from: earlier episodes, or a story in another series
+   * when this one starts a spin-off. (Stories it imports flags from count too.)
+   */
+  follows: z.array(Id).default([]),
   estimatedMinutes: z.number().positive(),
   minEngine: z.string().default("0.1.0"),
   cover: z.string().optional(),
@@ -45,3 +50,10 @@ export const StorySource = z.object({
 });
 
 export { Theme, Scene, Puzzle };
+
+/** <anywhere>/series.json — describes a series; its episodes say `"series": { "id": … }`. */
+export const SeriesSource = z.object({
+  id: Id,
+  title: z.string(),
+  synopsis: z.string().default(""),
+});

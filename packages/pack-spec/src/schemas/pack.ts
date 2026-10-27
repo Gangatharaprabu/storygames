@@ -23,6 +23,11 @@ export const Manifest = z.object({
   series: z.object({ id: Id, title: z.string(), episode: z.number().int().positive() }).optional(),
   /** Short labels for browsing and search, e.g. "cosy", "mystery". */
   tags: z.array(z.string()).default([]),
+  /**
+   * Stories this one carries on from: earlier episodes, or a story in another series
+   * when this one starts a spin-off. (Stories it imports flags from count too.)
+   */
+  follows: z.array(Id).default([]),
   orientation: z.literal("portrait"),
   estimatedMinutes: z.number().positive(),
   /** Lowest engine version able to play this pack. */

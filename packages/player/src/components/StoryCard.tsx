@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { CatalogEntry } from "@storygames/pack-spec";
 import { packUrl } from "../data/catalog.ts";
 import { href } from "../router.ts";
@@ -34,11 +35,33 @@ export function StoryCard({ story, wide = false }: { story: CatalogEntry; wide?:
 }
 
 /** A titled row of cards: scrolls sideways on phones, wraps into a grid on wide screens. */
-export function StoryRow({ title, stories, id }: { title: string; stories: CatalogEntry[]; id?: string }) {
+export function StoryRow({
+  title,
+  stories,
+  id,
+  titleHref,
+  note,
+}: {
+  title: string;
+  stories: CatalogEntry[];
+  id?: string;
+  /** Makes the heading a link (e.g. to the series page). */
+  titleHref?: string;
+  note?: ReactNode;
+}) {
   if (!stories.length) return null;
   return (
     <section className="row" aria-labelledby={id}>
-      <h2 id={id}>{title}</h2>
+      <h2 id={id}>
+        {titleHref ? (
+          <a className="row-link" href={titleHref}>
+            {title} <span aria-hidden="true">›</span>
+          </a>
+        ) : (
+          title
+        )}
+      </h2>
+      {note && <p className="row-note">{note}</p>}
       <div className="row-cards">
         {stories.map((s) => (
           <StoryCard key={s.id} story={s} />

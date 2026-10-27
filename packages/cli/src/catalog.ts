@@ -1,13 +1,20 @@
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { Catalog, StoryPack, type CatalogEntry } from "@storygames/pack-spec";
+import { Catalog, StoryPack, type CatalogCharacter, type CatalogEntry, type CatalogSeries } from "@storygames/pack-spec";
+import { SeriesSource } from "./source.ts";
+
+/** Folder inside the packs dir where build-all puts series descriptions. */
+export const SERIES_DIR = "_series";
 
 /**
- * Scans `packsDir/<folder>/pack.json` and writes `packsDir/catalog.json`: the list of
- * stories the player app shows. Paths in the catalog are relative to `packsDir`.
+ * Scans `packsDir/<folder>/pack.json` (and `packsDir/_series/*.json`) and writes
+ * `packsDir/catalog.json`: the stories, series and characters the app shows.
+ * Paths in the catalog are relative to `packsDir`.
  */
 export function writeCatalog(packsDir: string): Catalog {
   const stories: CatalogEntry[] = [];
+  const characters = new Map<string, CatalogCharacter>();
+
   for (const folder of readdirSync(packsDir).sort()) {
     const file = join(packsDir, folder, "pack.json");
     if (!statSync(join(packsDir, folder)).isDirectory() || !existsSync(file)) continue;
@@ -29,15 +36,87 @@ export function writeCatalog(packsDir: string): Catalog {
         const c = pack.characters.find((x) => x.id === member.character)!;
         return { id: c.id, name: c.name, role: member.role, portrait: `${folder}/${c.portraits[c.defaultExpression]}` };
       }),
-      continuesFrom: [...new Set(Object.values(pack.imports).map((i) => i.from))],
+      continuesFrom: [...new Set([...m.follows, ...Object.values(pack.imports).map((i) => i.from)])],
       publishedAt: statSync(file).mtime.toISOString(),
     });
+    for (const c of pack.characters) {
+      const existing = characters.get(c.id);
+      const portrait = `${folder}/${c.portraits[c.defaultExpression]}`;
+      // The most recently built story with a bio decides how the character is described.
+      characters.set(c.id, {
+        id: c.id,
+        name: c.name,
+        bio: c.bio ?? existing?.bio ?? "",
+        color: c.color,
+        portrait: existing?.portrait ?? portrait,
+        stories: [...(existing?.stories ?? []), m.id],
+      });
+    }
   }
+
   // Series episodes in order, then standalone stories by title.
   stories.sort((a, b) =>
     (a.series?.title ?? a.title).localeCompare(b.series?.title ?? b.title) || (a.series?.episode ?? 0) - (b.series?.episode ?? 0),
   );
-  const catalog = Catalog.parse({ catalogFormat: 1, generatedAt: new Date().toISOString(), stories });
+  const order = new Map(stories.map((s, i) => [s.id, i]));
+
+  // Series: described by _series/<id>.json when there is one, otherwise by their episodes.
+  const described = new Map<string, { title: string; synopsis: string }>();
+  const seriesDir = join(packsDir, SERIES_DIR);
+  if (existsSync(seriesDir)) {
+    for (const f of readdirSync(seriesDir).filter((n) => n.endsWith(".json"))) {
+      const s = SeriesSource.parse(JSON.parse(readFileSync(join(seriesDir, f), "utf8")));
+      described.set(s.id, s);
+    }
+  }
+  const series = new Map<string, CatalogSeries>();
+  for (const s of stories) {
+    if (!s.series) continue;
+    const info = described.get(s.series.id);
+    const entry = series.get(s.series.id) ?? {
+      id: s.series.id,
+      title: info?.title ?? s.series.title,
+      synopsis: info?.synopsis ?? "",
+      stories: [],
+      branchesFrom: [],
+    };
+    entry.stories.push(s.id);
+    series.set(s.series.id, entry);
+  }
+  const byId = new Map(stories.map((s) => [s.id, s]));
+  for (const entry of series.values()) {
+    const inside = new Set(entry.stories);
+    entry.branchesFrom = [
+      ...new Set(entry.stories.flatMap((id) => byId.get(id)!.continuesFrom).filter((id) => !inside.has(id) && byId.has(id))),
+    ];
+  }
+
+  // Originals before spin-offs: a series comes after the series it branches from.
+  const seriesOf = new Map(stories.filter((s) => s.series).map((s) => [s.id, s.series!.id]));
+  const depthCache = new Map<string, number>();
+  const depth = (id: string, seen = new Set<string>()): number => {
+    if (depthCache.has(id)) return depthCache.get(id)!;
+    if (seen.has(id)) return 0;
+    seen.add(id);
+    const parents = series.get(id)!.branchesFrom.map((sid) => seriesOf.get(sid)).filter((p): p is string => Boolean(p) && p !== id);
+    const d = parents.length ? 1 + Math.max(...parents.map((p) => depth(p, seen))) : 0;
+    depthCache.set(id, d);
+    return d;
+  };
+  const rank = (s: CatalogEntry) => (s.series ? depth(s.series.id) : Number.MAX_SAFE_INTEGER);
+  stories.sort((a, b) => rank(a) - rank(b) || (a.series?.title ?? a.title).localeCompare(b.series?.title ?? b.title) || (a.series?.episode ?? 0) - (b.series?.episode ?? 0));
+  stories.forEach((s, i) => order.set(s.id, i));
+  const orderedSeries = [...series.values()].sort((a, b) => order.get(a.stories[0]!)! - order.get(b.stories[0]!)!);
+
+  const catalog = Catalog.parse({
+    catalogFormat: 1,
+    generatedAt: new Date().toISOString(),
+    stories,
+    series: orderedSeries,
+    characters: [...characters.values()]
+      .map((c) => ({ ...c, stories: c.stories.sort((a, b) => order.get(a)! - order.get(b)!) }))
+      .sort((a, b) => b.stories.length - a.stories.length || a.name.localeCompare(b.name)),
+  });
   writeFileSync(join(packsDir, "catalog.json"), JSON.stringify(catalog, null, 2));
   return catalog;
 }
