@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 
 test("home shows series and standalone stories", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Short stories you solve." })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Featured" }).getByRole("link", { name: /Mira.s Journey/ })).toBeVisible();
   const series = page.getByRole("region", { name: "Mira's Journey" });
   await expect(series.getByRole("link", { name: /The Last Ferry/ })).toBeVisible();
   await expect(series.getByRole("link", { name: /The Island Lighthouse/ })).toBeVisible();
@@ -138,4 +138,17 @@ test("search finds characters and series too", async ({ page }) => {
   await page.getByRole("searchbox").fill("lighthouse tales");
   await expect(page.locator('[data-series="lighthouse-tales"]')).toBeVisible();
   await page.screenshot({ path: "test-results/app-08-search-series.png" });
+});
+
+test("back button returns to where you came from, or home from a shared link", async ({ page }) => {
+  await page.goto("/#/");
+  await page.getByRole("region", { name: "Short stories" }).getByRole("link", { name: /Clockmaker/ }).click();
+  await expect(page.getByRole("heading", { name: "The Clockmaker's Shop" })).toBeVisible();
+  await page.getByRole("button", { name: "Back" }).click();
+  await expect(page.getByRole("region", { name: "Featured" })).toBeVisible();
+
+  await page.goto("/#/character/hana");
+  await page.reload();
+  await page.getByRole("button", { name: "Back" }).click();
+  await expect(page).toHaveURL(/#\/$/);
 });

@@ -1,4 +1,5 @@
 import type { Catalog } from "@storygames/pack-spec";
+import { SectionTitle } from "../components/AppShell.tsx";
 import { SeriesCard } from "../components/Browse.tsx";
 import { StoryCard } from "../components/StoryCard.tsx";
 import { packUrl } from "../data/catalog.ts";
@@ -16,21 +17,19 @@ export function Character({ catalog, id }: { catalog: Catalog; id: string }) {
     <article className="character-page">
       <header className="character-head" style={{ ["--character" as string]: character.color }}>
         <img src={packUrl(character.portrait)} alt="" />
-        <div>
-          <p className="kicker">Character</p>
-          <h1>{character.name}</h1>
-          <p className="muted">
-            In {stories.length} {stories.length === 1 ? "story" : "stories"}
-            {lead > 0 && ` · the lead in ${lead}`}
-          </p>
-        </div>
+        <p className="hero-kicker">Character</p>
+        <h1>{character.name}</h1>
+        <p className="hero-meta">
+          In {stories.length} {stories.length === 1 ? "story" : "stories"}
+          {lead > 0 && ` · the lead in ${lead}`}
+        </p>
+        {character.bio && <p className="synopsis">{character.bio}</p>}
       </header>
-      {character.bio && <p className="synopsis">{character.bio}</p>}
 
       {series.length > 0 && (
-        <section className="row" aria-labelledby="character-series">
-          <h2 id="character-series">Series</h2>
-          <div className="row-cards row-cards-static">
+        <section className="section" aria-labelledby="character-series">
+          <SectionTitle id="character-series" title="Series" />
+          <div className="rail rail-wide">
             {series.map((s) => (
               <SeriesCard key={s.id} catalog={catalog} series={s} />
             ))}
@@ -38,8 +37,8 @@ export function Character({ catalog, id }: { catalog: Catalog; id: string }) {
         </section>
       )}
 
-      <section className="row" aria-labelledby="character-stories">
-        <h2 id="character-stories">Stories with {character.name}</h2>
+      <section className="section" aria-labelledby="character-stories">
+        <SectionTitle id="character-stories" title={`Stories with ${character.name}`} />
         <div className="grid">
           {stories.map((s) => (
             <StoryCard key={s.id} story={s} />

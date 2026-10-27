@@ -1,6 +1,8 @@
 import type { Catalog } from "@storygames/pack-spec";
+import { SectionTitle } from "../components/AppShell.tsx";
 import { BranchNote, CharacterRow } from "../components/Browse.tsx";
-import { StoryCard, StoryRow } from "../components/StoryCard.tsx";
+import { Featured } from "../components/Featured.tsx";
+import { ContinueCard, StoryRow } from "../components/StoryCard.tsx";
 import { href } from "../router.ts";
 import { useProfile } from "../state.ts";
 
@@ -11,24 +13,20 @@ export function Home({ catalog }: { catalog: Catalog }) {
   const continuing = stories
     .filter((s) => progress[s.id]?.status === "playing")
     .sort((a, b) => progress[b.id]!.lastPlayedAt.localeCompare(progress[a.id]!.lastPlayedAt));
-
   const standalone = stories.filter((s) => !s.series);
   const hasPlayed = Object.keys(progress).length > 0;
 
   return (
     <>
-      <section className="hero">
-        <p className="hero-kicker">{hasPlayed ? `Welcome back, ${profile.name}` : `Hello, ${profile.name}`}</p>
-        <h1>Short stories you solve.</h1>
-        <p className="hero-sub">Five-minute journeys, puzzles and people along the way.</p>
-      </section>
+      <h1 className="greeting">{hasPlayed ? `Welcome back, ${profile.name}` : `Hello, ${profile.name}`}</h1>
+      <Featured catalog={catalog} />
 
       {continuing.length > 0 && (
-        <section className="row" aria-labelledby="continue">
-          <h2 id="continue">Continue</h2>
-          <div className="row-cards">
+        <section className="section" aria-labelledby="continue">
+          <SectionTitle id="continue" title="Continue" to={href.library()} />
+          <div className="rail rail-wide">
             {continuing.map((s) => (
-              <StoryCard key={s.id} story={s} wide />
+              <ContinueCard key={s.id} story={s} />
             ))}
           </div>
         </section>

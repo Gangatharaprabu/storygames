@@ -2,6 +2,7 @@ import type { Catalog, CatalogCharacter, CatalogSeries } from "@storygames/pack-
 import { packUrl, parentSeriesOf } from "../data/catalog.ts";
 import { href } from "../router.ts";
 import { useProfile } from "../state.ts";
+import { SectionTitle } from "./AppShell.tsx";
 
 /** A character's face and name, linking to their page. */
 export function CharacterLink({ character, role }: { character: Pick<CatalogCharacter, "id" | "name" | "portrait">; role?: string }) {
@@ -17,8 +18,8 @@ export function CharacterLink({ character, role }: { character: Pick<CatalogChar
 export function CharacterRow({ characters, title = "Characters", id = "characters" }: { characters: CatalogCharacter[]; title?: string; id?: string }) {
   if (!characters.length) return null;
   return (
-    <section className="row" aria-labelledby={id}>
-      <h2 id={id}>{title}</h2>
+    <section className="section" aria-labelledby={id}>
+      <SectionTitle id={id} title={title} />
       <div className="characters">
         {characters.map((c) => (
           <CharacterLink key={c.id} character={c} />
@@ -45,20 +46,22 @@ export function BranchNote({ catalog, series }: { catalog: Catalog; series: Cata
   );
 }
 
-/** A series as a card: first episode's art, title, episode count and your progress. */
+/** A series as a poster: first episode's art, title, episode count and your progress. */
 export function SeriesCard({ catalog, series }: { catalog: Catalog; series: CatalogSeries }) {
   const { progress } = useProfile();
   const first = catalog.stories.find((s) => s.id === series.stories[0]);
   const done = series.stories.filter((id) => progress[id]?.status === "finished" || (progress[id]?.timesFinished ?? 0) > 0).length;
   const count = series.stories.length;
   return (
-    <a className="card card-wide" href={href.series(series.id)} data-series={series.id}>
-      <div className="card-art">{first && <img src={packUrl(first.cover)} alt="" loading="lazy" />}</div>
-      <div className="card-text">
-        <span className="card-title">{series.title}</span>
-        <span className="card-meta">
-          {count} {count === 1 ? "episode" : "episodes"}
-          {done > 0 && ` · ${done} finished`}
+    <a className="poster poster-overlay poster-wide" href={href.series(series.id)} data-series={series.id}>
+      <div className="poster-art">
+        {first && <img src={packUrl(first.cover)} alt="" loading="lazy" />}
+        <span className="poster-caption">
+          <span className="poster-title">{series.title}</span>
+          <span className="poster-meta">
+            {count} {count === 1 ? "episode" : "episodes"}
+            {done > 0 && ` · ${done} finished`}
+          </span>
         </span>
       </div>
     </a>

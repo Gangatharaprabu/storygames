@@ -2,19 +2,27 @@ import { useState } from "react";
 import type { CatalogEntry } from "@storygames/pack-spec";
 import { shareUrl } from "../router.ts";
 import { profileStore, useProfile } from "../state.ts";
+import { Icon } from "./Icon.tsx";
 
 export function SaveButton({ story }: { story: CatalogEntry }) {
   const { saved } = useProfile();
   const isSaved = story.id in saved;
   return (
-    <button type="button" className="btn" aria-pressed={isSaved} onClick={() => profileStore.toggleSaved(story.id)}>
-      <span aria-hidden="true">{isSaved ? "♥" : "♡"}</span> {isSaved ? "Saved" : "Save"}
+    <button
+      type="button"
+      className="round-btn"
+      aria-label={isSaved ? "Saved" : "Save"}
+      title={isSaved ? "Saved" : "Save"}
+      aria-pressed={isSaved}
+      onClick={() => profileStore.toggleSaved(story.id)}
+    >
+      <Icon name="heart" filled={isSaved} />
     </button>
   );
 }
 
 /** Shares a link to the story: the phone's share sheet when there is one, otherwise copies the link. */
-export function ShareButton({ story, className = "btn" }: { story: CatalogEntry; className?: string }) {
+export function ShareButton({ story, className = "round-btn", label = false }: { story: CatalogEntry; className?: string; label?: boolean }) {
   const [note, setNote] = useState("");
   const share = async () => {
     const url = shareUrl(story.id);
@@ -37,8 +45,9 @@ export function ShareButton({ story, className = "btn" }: { story: CatalogEntry;
   };
   return (
     <span className="share">
-      <button type="button" className={className} onClick={share}>
-        <span aria-hidden="true">↗</span> Share
+      <button type="button" className={className} onClick={share} aria-label="Share" title="Share">
+        <Icon name="share" size={20} />
+        {label && <span>Share</span>}
       </button>
       <span className="toast" role="status">{note}</span>
     </span>

@@ -1,53 +1,73 @@
 import type { ReactNode } from "react";
-import { href, type Route } from "../router.ts";
+import { href, navigate, type Route } from "../router.ts";
 import { useProfile } from "../state.ts";
+import { Icon, type IconName } from "./Icon.tsx";
 
-/** Simple line icons (24×24, drawn with currentColor) so all tabs match. */
-const ICONS = {
-  home: "M4 11 12 4l8 7v9h-5v-6H9v6H4z",
-  search: "M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM15.5 15.5 20 20",
-  library: "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z",
-  profile: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20a7.5 7.5 0 0 1 15 0",
-};
+const TABS: Array<{ route: Route["name"]; label: string; icon: IconName; to: string }> = [
+  { route: "home", label: "Home", icon: "home", to: href.home() },
+  { route: "search", label: "Search", icon: "search", to: href.search() },
+  { route: "library", label: "My stories", icon: "library", to: href.library() },
+  { route: "profile", label: "Profile", icon: "profile", to: href.profile() },
+];
 
-const TABS = [
-  { route: "home", label: "Home", to: href.home() },
-  { route: "search", label: "Search", to: href.search() },
-  { route: "library", label: "My stories", to: href.library() },
-  { route: "profile", label: "Profile", to: href.profile() },
-] as const;
+/** Top bar + a floating, icons-only tab bar. */
+/** Pages you reach by tapping into something get a back button instead of the logo. */
+const DETAIL: Array<Route["name"]> = ["story", "series", "character", "not-found"];
 
-/** Header + navigation (top bar on wide screens, bottom tab bar on phones). */
+let visited = 0;
+window.addEventListener("hashchange", () => visited++);
+
+function goBack() {
+  // Back within the app; a shared link opened fresh has nowhere to go back to, so go home.
+  if (visited > 0) history.back();
+  else navigate(href.home());
+}
+
 export function AppShell({ route, children }: { route: Route; children: ReactNode }) {
   const { profile } = useProfile();
+  const detail = DETAIL.includes(route.name);
   return (
     <div className="app">
       <header className="app-header">
-        <a className="app-logo" href={href.home()}>
-          <span aria-hidden="true">🏮</span> Storygames
-        </a>
-        <nav className="app-nav-top" aria-label="Main">
-          {TABS.map((t) => (
-            <a key={t.route} href={t.to} aria-current={route.name === t.route ? "page" : undefined}>
-              {t.label}
-            </a>
-          ))}
-        </nav>
-        <a className="app-avatar" href={href.profile()} aria-label={`Profile: ${profile.name}`}>
-          {profile.avatar}
+        {detail ? (
+          <button type="button" className="icon-btn" aria-label="Back" onClick={goBack}>
+            <Icon name="back" />
+          </button>
+        ) : (
+          <a className="app-logo" href={href.home()}>
+            Storygames
+          </a>
+        )}
+        <a className="icon-btn" href={href.profile()} aria-label={`Profile: ${profile.name}`}>
+          <span className="app-avatar" aria-hidden="true">{profile.avatar}</span>
         </a>
       </header>
       <main className="app-main">{children}</main>
-      <nav className="app-tabs" aria-label="Main">
-        {TABS.map((t) => (
-          <a key={t.route} href={t.to} aria-current={route.name === t.route ? "page" : undefined}>
-            <svg className="app-tab-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d={ICONS[t.route]} />
-            </svg>
-            {t.label}
-          </a>
-        ))}
+      <nav className="tabbar" aria-label="Main">
+        {TABS.map((t) => {
+          const active = route.name === t.route;
+          return (
+            <a key={t.route} href={t.to} aria-label={t.label} aria-current={active ? "page" : undefined}>
+              <Icon name={t.icon} filled={active && t.icon !== "search"} />
+            </a>
+          );
+        })}
       </nav>
     </div>
+  );
+}
+
+/** "Top trending ›" style section heading; the chevron links somewhere when `to` is given. */
+export function SectionTitle({ id, title, to }: { id?: string; title: string; to?: string }) {
+  return (
+    <h2 className="section-title" id={id}>
+      {to ? (
+        <a href={to}>
+          {title} <Icon name="chevron" size={18} />
+        </a>
+      ) : (
+        title
+      )}
+    </h2>
   );
 }
