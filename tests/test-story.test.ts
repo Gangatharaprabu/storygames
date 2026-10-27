@@ -149,3 +149,35 @@ describe("debug tools", () => {
     expect(fresh.view().scene.id).toBe("harbour");
   });
 });
+
+describe("saving mid-conversation", () => {
+  it("resumes from just before the conversation, and replays it", async () => {
+    const s = await newSession();
+    s.advance(); // halfway through the arrival narration
+    const save = JSON.parse(JSON.stringify(s.save()));
+    expect(save.replayOnEnter).toBe(true);
+
+    const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
+    const resumed = new StorySession(result.pack!, { puzzles: puzzleLogic, save });
+    resumed.start();
+    expect(resumed.view().dialogue?.text).toMatch(/The last light/);
+    finishDialogue(resumed);
+    expect(resumed.view().state.flags.arrived).toBe(true);
+  });
+
+  it("an interrupted talk with Tomo is replayed, not lost", async () => {
+    const s = await newSession();
+    finishDialogue(s);
+    s.activateHotspot("tomo");
+    s.advance();
+    const save = JSON.parse(JSON.stringify(s.save()));
+    expect(save.state.flags.talked_to_tomo).toBe(false);
+
+    const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
+    const resumed = new StorySession(result.pack!, { puzzles: puzzleLogic, save });
+    resumed.start();
+    expect(resumed.view().dialogue).toBeNull();
+    resumed.activateHotspot("tomo");
+    expect(resumed.view().dialogue?.text).toMatch(/Evening/); // the first meeting again, not "Still here?"
+  });
+});

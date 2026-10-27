@@ -20,7 +20,9 @@ export const Manifest = z.object({
   version: z.string().regex(/^\d+\.\d+\.\d+$/),
   title: z.string(),
   synopsis: z.string().default(""),
-  series: z.object({ id: Id, episode: z.number().int().positive() }).optional(),
+  series: z.object({ id: Id, title: z.string(), episode: z.number().int().positive() }).optional(),
+  /** Short labels for browsing and search, e.g. "cosy", "mystery". */
+  tags: z.array(z.string()).default([]),
   orientation: z.literal("portrait"),
   estimatedMinutes: z.number().positive(),
   /** Lowest engine version able to play this pack. */

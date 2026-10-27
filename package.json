@@ -6,9 +6,9 @@
   "engines": { "node": ">=20" },
   "scripts": {
     "storygames": "node packages/cli/bin/storygames.mjs",
-    "build:test-story": "node packages/cli/bin/storygames.mjs build fixtures/test-story --library fixtures/library --out packages/player/public/packs/test-story",
+    "build:packs": "node scripts/build-packs.mjs",
     "dev": "node scripts/dev.mjs",
-    "build": "pnpm build:test-story && pnpm --filter @storygames/player build",
+    "build": "pnpm build:packs && pnpm --filter @storygames/player build",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:e2e": "pnpm build && pnpm --filter @storygames/player test:e2e",

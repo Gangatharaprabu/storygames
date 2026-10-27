@@ -1,31 +1,41 @@
-import { watch } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, readdirSync, readFileSync, statSync, watch } from "node:fs";
+import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { buildStory, type BuildResult } from "./build.ts";
+import { writeCatalog } from "./catalog.ts";
 
 const USAGE = `storygames <command> <story-dir> --library <dir> [--out <dir>]
 
 Commands:
   build      validate the story and write a Story Pack to --out
   validate   check the story without writing anything
-  watch      build, then rebuild whenever the story or library changes`;
+  watch      build, then rebuild whenever the story or library changes
+  build-all  build every story found under <dir> into --out/<story id>/ and update
+             --out/catalog.json (the list of stories the app shows)
+  catalog    rewrite <packs-dir>/catalog.json from the packs already in it`;
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
   options: {
     library: { type: "string" },
     out: { type: "string" },
+    "quiet-start": { type: "boolean" },
     help: { type: "boolean", short: "h" },
   },
 });
 
 const [command, storyDir] = positionals;
-const needsOut = command === "build" || command === "watch";
+if (command === "catalog" && storyDir) {
+  const catalog = writeCatalog(storyDir);
+  console.log(`✓ catalog: ${catalog.stories.length} stories`);
+  process.exit(0);
+}
+const needsOut = command === "build" || command === "watch" || command === "build-all";
 if (values.help || !command || !storyDir || !values.library || (needsOut && !values.out)) {
   console.log(USAGE);
   process.exit(values.help ? 0 : 1);
 }
-if (!["build", "validate", "watch"].includes(command)) {
+if (!["build", "validate", "watch", "build-all"].includes(command)) {
   console.error(`unknown command "${command}"\n\n${USAGE}`);
   process.exit(1);
 }
@@ -38,7 +48,25 @@ function report(result: BuildResult) {
 const run = () =>
   buildStory({ storyDir, libraryDir: values.library!, outDir: command === "validate" ? undefined : values.out });
 
-if (command !== "watch") {
+if (command === "build-all") {
+  const stories = findStories(storyDir);
+  let failed = 0;
+  for (const dir of stories) {
+    const id = JSON.parse(readFileSync(join(dir, "story.json"), "utf8")).id as string;
+    const result = await buildStory({ storyDir: dir, libraryDir: values.library!, outDir: join(values.out!, id) });
+    report(result);
+    if (result.ok) console.log(`✓ ${dir} → ${values.out}/${id}`);
+    else {
+      failed++;
+      console.error(`✗ ${dir}: ${result.errors.length} error(s)`);
+    }
+  }
+  if (existsSync(values.out!)) {
+    const catalog = writeCatalog(values.out!);
+    console.log(`✓ catalog: ${catalog.stories.length} stories`);
+  }
+  process.exit(failed ? 1 : 0);
+} else if (command !== "watch") {
   const result = await run();
   report(result);
   if (!result.ok) {
@@ -50,6 +78,7 @@ if (command !== "watch") {
   let timer: NodeJS.Timeout | undefined;
   let building = false;
   let again = false;
+  let first = true;
   const rebuild = async () => {
     if (building) {
       again = true;
@@ -61,12 +90,17 @@ if (command !== "watch") {
       const result = await run();
       report(result);
       const time = new Date().toLocaleTimeString();
-      if (result.ok) console.log(`✓ [${time}] rebuilt in ${Date.now() - started}ms`);
+      if (result.ok) {
+        const packsDir = resolve(values.out!, "..");
+        if (existsSync(join(packsDir, "catalog.json"))) writeCatalog(packsDir);
+        if (!(first && values["quiet-start"])) console.log(`✓ [${time}] ${storyDir} rebuilt in ${Date.now() - started}ms`);
+      }
       else console.error(`✗ [${time}] ${result.errors.length} error(s), the previous build stays in place`);
     } catch (e) {
       console.error(`✗ build crashed: ${(e as Error).message}`);
     }
     building = false;
+    first = false;
     if (again) {
       again = false;
       void rebuild();
@@ -77,6 +111,16 @@ if (command !== "watch") {
     timer = setTimeout(rebuild, 150);
   };
   for (const dir of [storyDir, values.library!]) watch(resolve(dir), { recursive: true }, schedule);
-  console.log(`watching ${storyDir} and ${values.library} (Ctrl+C to stop)`);
+  if (!values["quiet-start"]) console.log(`watching ${storyDir} and ${values.library} (Ctrl+C to stop)`);
   await rebuild();
+}
+
+/** Every folder under `root` (or `root` itself) that contains a story.json. */
+function findStories(root: string): string[] {
+  if (!existsSync(root)) return [];
+  if (existsSync(join(root, "story.json"))) return [root];
+  return readdirSync(root)
+    .filter((n) => !n.startsWith(".") && statSync(join(root, n)).isDirectory())
+    .sort()
+    .flatMap((n) => findStories(join(root, n)));
 }

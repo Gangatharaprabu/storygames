@@ -1,0 +1,17 @@
+{
+  "id": "ren",
+  "name": "Ren",
+  "color": "#9ccc9c",
+  "bio": "An apprentice who notices what others miss.",
+  "variants": {
+    "default": {
+      "defaultExpression": "neutral",
+      "portraits": {
+        "neutral": "portraits/neutral.svg",
+        "happy": "portraits/happy.svg",
+        "thinking": "portraits/thinking.svg",
+        "surprised": "portraits/surprised.svg"
+      }
+    }
+  }
+}

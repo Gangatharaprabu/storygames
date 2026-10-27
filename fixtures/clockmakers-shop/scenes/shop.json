@@ -1,0 +1,94 @@
+{
+  "id": "shop",
+  "title": "The Shop",
+  "background": "art/shop.svg",
+  "layers": [
+    {
+      "id": "oda",
+      "image": "art/oda-standing.svg",
+      "rect": {
+        "x": 420,
+        "y": 860,
+        "w": 160,
+        "h": 340
+      }
+    }
+  ],
+  "onEnter": [
+    {
+      "do": "dialogue",
+      "knot": "arrival",
+      "if": {
+        "not": {
+          "flag": "arrived"
+        }
+      }
+    },
+    {
+      "do": "set",
+      "flag": "arrived"
+    }
+  ],
+  "hotspots": [
+    {
+      "id": "oda",
+      "label": "Mr. Oda",
+      "rect": {
+        "x": 410,
+        "y": 850,
+        "w": 180,
+        "h": 360
+      },
+      "actions": [
+        {
+          "do": "dialogue",
+          "knot": "oda"
+        }
+      ]
+    },
+    {
+      "id": "clocks",
+      "label": "The wall of clocks",
+      "rect": {
+        "x": 100,
+        "y": 250,
+        "w": 880,
+        "h": 620
+      },
+      "actions": [
+        {
+          "do": "dialogue",
+          "knot": "clocks"
+        }
+      ]
+    },
+    {
+      "id": "strongbox",
+      "label": "A green strongbox",
+      "rect": {
+        "x": 770,
+        "y": 970,
+        "w": 180,
+        "h": 220
+      },
+      "actions": [
+        {
+          "do": "dialogue",
+          "knot": "box_locked",
+          "if": {
+            "not": {
+              "flag": "noticed_clocks"
+            }
+          }
+        },
+        {
+          "do": "puzzle",
+          "puzzle": "strongbox",
+          "if": {
+            "flag": "noticed_clocks"
+          }
+        }
+      ]
+    }
+  ]
+}

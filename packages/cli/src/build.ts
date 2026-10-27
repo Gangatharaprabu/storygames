@@ -92,6 +92,7 @@ export async function buildStory(opts: BuildOptions): Promise<BuildResult> {
       title: story.title,
       synopsis: story.synopsis ?? "",
       series: story.series,
+      tags: story.tags,
       orientation: "portrait",
       estimatedMinutes: story.estimatedMinutes,
       minEngine: story.minEngine,

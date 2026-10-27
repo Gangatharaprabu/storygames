@@ -37,6 +37,21 @@ Enforced by `scripts/check-boundaries.mjs` (part of `pnpm check`).
 `player` and `studio` never import each other. The engine is headless, so the same session
 runs in the player, in Studio preview and in tests.
 
+## The app
+
+```
+packs/catalog.json          list of stories (CLI: build-all / catalog)
+packs/<story-id>/pack.json  one story
+```
+
+- Hash routes (`#/`, `#/search`, `#/library`, `#/profile`, `#/story/<id>`, `#/play/<id>`),
+  so shared links work on any static host and inside the native app.
+- `ProfileStore` holds the profile, saved stories, progress and the saga (exports of
+  finished stories, read by sequels). It saves through a `ProfileBackend`: on the device
+  today, a cloud account later, with no UI changes.
+- Game saves are written at the last calm moment (nothing open or queued), so leaving in
+  the middle of a conversation replays it on return instead of skipping it.
+
 ## Engine model
 
 - **Scenes**: a portrait background (1080×1920 canvas units), conditional layers, and hotspots.
@@ -60,7 +75,11 @@ runs in the player, in Studio preview and in tests.
 2. First real story. Part A ✅: live rebuild, debug panel, AI-art pipeline (PNG → WebP),
    typewriter text, scene fades, music and UI sounds, title screen, `content/` folder.
    Part B: the story itself, plus the puzzle types it needs.
-3. Publishing: CDN, `catalog.json`, staging/live channels; player library screen.
+3. The app ✅ (device-only): home with Continue and series rows, search (title, characters,
+   tags), story pages, saved stories, My stories, profile with stats, share links,
+   next-episode flow, `catalog.json` built by the CLI. Still to come: accounts and cloud
+   sync (a `ProfileBackend` replaces the device one), publishing to a CDN with
+   staging/live channels.
 4. Studio UI: character library, editors, live preview.
 5. A sequel sharing a character: saga imports/exports end to end.
 6. iOS/Android via Capacitor.

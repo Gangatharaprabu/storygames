@@ -1,0 +1,83 @@
+{
+  "id": "shore",
+  "title": "The Shore",
+  "background": "art/shore.svg",
+  "music": "audio/waves.wav",
+  "layers": [
+    {
+      "id": "hana",
+      "image": "art/hana-standing.svg",
+      "rect": {
+        "x": 560,
+        "y": 1180,
+        "w": 160,
+        "h": 340
+      }
+    }
+  ],
+  "onEnter": [
+    {
+      "do": "dialogue",
+      "knot": "arrival",
+      "if": {
+        "not": {
+          "flag": "arrived"
+        }
+      }
+    },
+    {
+      "do": "set",
+      "flag": "arrived"
+    }
+  ],
+  "hotspots": [
+    {
+      "id": "hana",
+      "label": "Hana, the keeper",
+      "rect": {
+        "x": 550,
+        "y": 1170,
+        "w": 180,
+        "h": 360
+      },
+      "actions": [
+        {
+          "do": "dialogue",
+          "knot": "hana"
+        }
+      ]
+    },
+    {
+      "id": "rock",
+      "label": "A carved rock",
+      "rect": {
+        "x": 780,
+        "y": 1630,
+        "w": 240,
+        "h": 140
+      },
+      "actions": [
+        {
+          "do": "dialogue",
+          "knot": "rock"
+        }
+      ]
+    },
+    {
+      "id": "door",
+      "label": "The sealed door",
+      "rect": {
+        "x": 320,
+        "y": 1350,
+        "w": 220,
+        "h": 320
+      },
+      "actions": [
+        {
+          "do": "puzzle",
+          "puzzle": "lighthouse-door"
+        }
+      ]
+    }
+  ]
+}

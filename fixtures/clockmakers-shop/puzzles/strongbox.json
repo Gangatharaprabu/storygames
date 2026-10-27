@@ -1,0 +1,33 @@
+{
+  "id": "strongbox",
+  "type": "combination-lock",
+  "presentation": "inline",
+  "rect": {
+    "x": 140,
+    "y": 420,
+    "w": 800,
+    "h": 900
+  },
+  "title": "Strongbox",
+  "prompt": "Four dials. Hours, then minutes.",
+  "config": {
+    "dials": 4,
+    "solution": [
+      "0",
+      "9",
+      "1",
+      "5"
+    ]
+  },
+  "hints": [
+    "What do all the clocks have in common?",
+    "They all stopped at a quarter past nine.",
+    "0 9 1 5"
+  ],
+  "onSolve": [
+    {
+      "do": "goto",
+      "scene": "back-room"
+    }
+  ]
+}

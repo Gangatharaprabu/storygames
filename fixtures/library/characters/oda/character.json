@@ -1,0 +1,17 @@
+{
+  "id": "oda",
+  "name": "Mr. Oda",
+  "color": "#d8b04a",
+  "bio": "The old clockmaker. Fond of riddles, short on patience.",
+  "variants": {
+    "default": {
+      "defaultExpression": "neutral",
+      "portraits": {
+        "neutral": "portraits/neutral.svg",
+        "happy": "portraits/happy.svg",
+        "grumpy": "portraits/grumpy.svg",
+        "surprised": "portraits/surprised.svg"
+      }
+    }
+  }
+}

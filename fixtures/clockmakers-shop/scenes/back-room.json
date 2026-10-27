@@ -1,0 +1,14 @@
+{
+  "id": "back-room",
+  "title": "The Back Room",
+  "background": "art/back-room.svg",
+  "onEnter": [
+    {
+      "do": "dialogue",
+      "knot": "ending"
+    },
+    {
+      "do": "end"
+    }
+  ]
+}

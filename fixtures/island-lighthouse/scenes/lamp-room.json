@@ -1,0 +1,14 @@
+{
+  "id": "lamp-room",
+  "title": "The Lamp Room",
+  "background": "art/lamp-room.svg",
+  "onEnter": [
+    {
+      "do": "dialogue",
+      "knot": "lamp"
+    },
+    {
+      "do": "end"
+    }
+  ]
+}

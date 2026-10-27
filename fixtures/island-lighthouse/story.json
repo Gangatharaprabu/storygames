@@ -1,0 +1,45 @@
+{
+  "id": "the-island-lighthouse",
+  "version": "0.1.0",
+  "title": "The Island Lighthouse",
+  "synopsis": "Mira reaches the island at night. The lighthouse her mother once kept is dark, and its door is sealed.",
+  "series": {
+    "id": "miras-journey",
+    "title": "Mira's Journey",
+    "episode": 2
+  },
+  "tags": [
+    "cosy",
+    "journey",
+    "mystery",
+    "short"
+  ],
+  "estimatedMinutes": 3,
+  "minEngine": "0.1.0",
+  "cast": [
+    {
+      "character": "mira",
+      "variant": "traveller",
+      "role": "protagonist"
+    },
+    {
+      "character": "hana",
+      "role": "npc"
+    }
+  ],
+  "startScene": "shore",
+  "flags": {
+    "arrived": false,
+    "talked_to_hana": false,
+    "helped_ferryman": false
+  },
+  "imports": {
+    "helped_ferryman": {
+      "from": "the-last-ferry",
+      "default": false
+    }
+  },
+  "exports": [
+    "talked_to_hana"
+  ]
+}

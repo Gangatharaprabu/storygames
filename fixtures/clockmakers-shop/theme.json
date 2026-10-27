@@ -1,0 +1,21 @@
+{
+  "colors": {
+    "background": "#2a211b",
+    "surface": "#3b2e26",
+    "text": "#f6efe6",
+    "muted": "#cdbba3",
+    "accent": "#d8b04a",
+    "accentText": "#2a211b"
+  },
+  "fonts": {
+    "body": "'Trebuchet MS', system-ui, sans-serif",
+    "display": "Georgia, 'Times New Roman', serif"
+  },
+  "radius": 18,
+  "colorGrade": "sepia(0.15) saturate(1.05)",
+  "sounds": {
+    "tap": "audio/tap.wav",
+    "solve": "audio/solve.wav",
+    "wrong": "audio/wrong.wav"
+  }
+}

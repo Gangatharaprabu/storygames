@@ -1,0 +1,17 @@
+{
+  "id": "hana",
+  "name": "Hana",
+  "color": "#e98a8a",
+  "bio": "Keeper of the island lighthouse. Knew Mira's mother.",
+  "variants": {
+    "default": {
+      "defaultExpression": "neutral",
+      "portraits": {
+        "neutral": "portraits/neutral.svg",
+        "happy": "portraits/happy.svg",
+        "worried": "portraits/worried.svg",
+        "surprised": "portraits/surprised.svg"
+      }
+    }
+  }
+}

@@ -20,12 +20,12 @@ Needs Node 20+ and pnpm.
 
 ```sh
 pnpm install
-pnpm dev                     # the test story, at http://localhost:5173
-pnpm dev content/series/...  # any story folder
+pnpm dev        # the app with every story, at http://localhost:5173
 ```
 
-`pnpm dev` rebuilds the story whenever you save a file in it (or in the character
-library) and the browser reloads by itself, resuming where you were. A 🐞 button opens the
+`pnpm dev` builds every story (the samples in `fixtures/` and yours in `content/`),
+rebuilds a story whenever you save one of its files (or a character in the library), and
+the browser reloads by itself, resuming where you were. A 🐞 button opens the
 **debug panel**: jump to any scene, change flags and items, skip dialogue, solve puzzles.
 On the deployed site, add `?debug` to the URL to get the same panel.
 
@@ -33,7 +33,9 @@ On the deployed site, add `?debug` to the URL to get the same panel.
 
 | Command | What it does |
 |---|---|
-| `pnpm dev [story-dir]` | Build the story on every save and run the player with the debug panel |
+| `pnpm dev` | Build every story on save and run the app with the debug panel |
+| `pnpm build:packs` | Build the sample stories and `catalog.json` (what the public site gets) |
+| `pnpm storygames build-all <dir> --library <dir> --out <packs>` | Build every story under a folder and update the catalog |
 | `pnpm storygames validate <story> --library <dir>` | Check a story without building |
 | `pnpm storygames build <story> --library <dir> --out <dir>` | Build a Story Pack |
 | `pnpm storygames watch <story> --library <dir> --out <dir>` | Rebuild on every change |
@@ -48,12 +50,15 @@ packages/
   engine/      headless runtime: scenes, actions, conditions, ink dialogue, puzzles, saves
   puzzles/     puzzle types; each = logic (headless) + view (skinnable, themed)
   ui/          React player UI: stage, dialogue, puzzle host, inventory (theme-driven)
-  player/      the player app (web now; wrapped with Capacitor later)
+  player/      the app: home, search, story pages, my stories, profile, sharing, and play
+               (web now; wrapped with Capacitor later)
   cli/         storygames build | validate (publish comes in Milestone 3)
 content/       your stories and characters (see content/README.md)
 fixtures/
   library/     a tiny character library (Mira, Tomo)
-  test-story/  "The Last Ferry", a 3-minute test story with two routes
+  test-story/        "The Last Ferry", Mira's Journey ep. 1 (two routes)
+  island-lighthouse/ "The Island Lighthouse", ep. 2 (reads ep. 1's choice)
+  clockmakers-shop/  "The Clockmaker's Shop", a standalone story
 tests/         integration tests: build the test story and play every route headless
 scripts/       check-boundaries.mjs enforces which package may import which
 ```

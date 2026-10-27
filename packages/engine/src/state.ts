@@ -18,4 +18,6 @@ export interface SaveData {
   state: GameState;
   /** ink's own state (visit counts, etc.). */
   ink: string;
+  /** The scene's onEnter had not finished when this was saved; run it again on resume. */
+  replayOnEnter?: boolean;
 }

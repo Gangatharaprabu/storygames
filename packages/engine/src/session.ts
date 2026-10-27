@@ -56,6 +56,9 @@ export class StorySession {
   private eventListeners = new Set<(e: SessionEvent) => void>();
   private cachedView: SessionView | null = null;
   private started = false;
+  /** Last calm moment (nothing open, nothing queued), which is what gets saved. */
+  private checkpoint: { state: GameState; ink: string; replayOnEnter: boolean } | null = null;
+  private resumeOnEnter = false;
 
   constructor(pack: StoryPack, options: SessionOptions) {
     if (!satisfiesMinEngine(pack.manifest.minEngine)) {
@@ -78,7 +81,7 @@ export class StorySession {
     if (save && this.saveFits(save)) {
       this.state = structuredClone(save.state);
       this.ink.loadState(save.ink);
-      this.started = true;
+      this.resumeOnEnter = Boolean(save.replayOnEnter);
     } else {
       const flags = { ...pack.flags };
       for (const [name, imp] of Object.entries(pack.imports)) {
@@ -100,7 +103,11 @@ export class StorySession {
   start() {
     if (this.started) return;
     this.started = true;
-    this.enterScene(this.pack.startScene);
+    if (this.state.visited.length === 0) this.enterScene(this.pack.startScene);
+    else if (this.resumeOnEnter) {
+      this.takeCheckpoint(true);
+      this.queue.push(...this.sceneById(this.state.scene).onEnter);
+    } else this.takeCheckpoint(false);
     this.pump();
   }
 
@@ -135,13 +142,19 @@ export class StorySession {
     return () => this.eventListeners.delete(listener);
   }
 
+  /**
+   * The game as of its last calm moment. Saving in the middle of a conversation or
+   * puzzle saves from just before it, so resuming replays it instead of skipping it.
+   */
   save(): SaveData {
+    const cp = this.checkpoint ?? { state: this.state, ink: this.ink.saveState(), replayOnEnter: false };
     return {
       packId: this.pack.manifest.id,
       packVersion: this.pack.manifest.version,
       savedAt: new Date().toISOString(),
-      state: structuredClone(this.state),
-      ink: this.ink.saveState(),
+      state: structuredClone(cp.state),
+      ink: cp.ink,
+      ...(cp.replayOnEnter ? { replayOnEnter: true } : {}),
     };
   }
 
@@ -312,7 +325,12 @@ export class StorySession {
           break;
       }
     }
+    if (!this.dialogue && !this.puzzle && !this.queue.length) this.takeCheckpoint(false);
     this.changed();
+  }
+
+  private takeCheckpoint(replayOnEnter: boolean) {
+    this.checkpoint = { state: structuredClone(this.state), ink: this.ink.saveState(), replayOnEnter };
   }
 
   private nextLine(pumpWhenDone = true) {
@@ -334,6 +352,7 @@ export class StorySession {
   private enterScene(id: string) {
     this.state.scene = id;
     if (!this.state.visited.includes(id)) this.state.visited.push(id);
+    this.takeCheckpoint(true);
     // A scene's onEnter runs before anything else still queued.
     this.queue.unshift(...this.sceneById(id).onEnter);
     this.emit({ type: "scene-entered", scene: id });

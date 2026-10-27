@@ -5,4 +5,5 @@ export * from "./schemas/theme.ts";
 export * from "./schemas/scene.ts";
 export * from "./schemas/puzzle.ts";
 export * from "./schemas/pack.ts";
+export * from "./schemas/catalog.ts";
 export * from "./validate.ts";

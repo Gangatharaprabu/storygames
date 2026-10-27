@@ -19,13 +19,16 @@ export interface StoryPlayerProps {
   assetUrl: (path: string) => string;
   puzzleViews: Record<string, ComponentType<PuzzleViewComponentProps>>;
   sound?: SoundBoard;
-  onRestart?: () => void;
+  /** Shows a back button that leaves the story. */
+  onExit?: () => void;
+  /** Buttons on the ending screen (e.g. next episode, share). */
+  ending?: ReactNode;
   /** Extra controls drawn over the viewport, e.g. the debug panel. */
   children?: ReactNode;
 }
 
 /** Plays one story session in a portrait stage that scales to fit the screen. */
-export function StoryPlayer({ session, assetUrl, puzzleViews, sound, onRestart, children }: StoryPlayerProps) {
+export function StoryPlayer({ session, assetUrl, puzzleViews, sound, onExit, ending, children }: StoryPlayerProps) {
   const view = useSyncExternalStore(
     (cb) => session.subscribe(cb),
     () => session.view(),
@@ -65,16 +68,23 @@ export function StoryPlayer({ session, assetUrl, puzzleViews, sound, onRestart, 
           }}
         />
 
-        {sound && hasAudio && (
+        <div className="sg-corner">
+          {onExit && (
+            <button type="button" className="sg-icon-button" aria-label="Leave story" onClick={onExit}>
+              ←
+            </button>
+          )}
+          {sound && hasAudio && (
           <button
             type="button"
-            className="sg-icon-button sg-mute"
+            className="sg-icon-button"
             aria-label={muted ? "Sound on" : "Sound off"}
             onClick={() => sound.setMuted(!muted)}
           >
             {muted ? "🔇" : "🔊"}
           </button>
-        )}
+          )}
+        </div>
 
         {view.inventory.length > 0 && (
           <ul className="sg-inventory" aria-label="Inventory">
@@ -117,9 +127,7 @@ export function StoryPlayer({ session, assetUrl, puzzleViews, sound, onRestart, 
           <div className="sg-end" role="dialog" aria-label="The end">
             <p className="sg-end-kicker">The End</p>
             <h1>{manifest.title}</h1>
-            {onRestart && (
-              <button type="button" className="sg-button sg-primary" onClick={onRestart}>Play again</button>
-            )}
+            {ending && <div className="sg-end-actions">{ending}</div>}
           </div>
         )}
       </main>

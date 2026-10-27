@@ -28,7 +28,9 @@ export const StorySource = z.object({
   version: z.string(),
   title: z.string(),
   synopsis: z.string().optional(),
-  series: z.object({ id: Id, episode: z.number().int().positive() }).optional(),
+  series: z.object({ id: Id, title: z.string(), episode: z.number().int().positive() }).optional(),
+  /** Short labels for browsing and search, e.g. "cosy", "mystery". */
+  tags: z.array(z.string()).default([]),
   estimatedMinutes: z.number().positive(),
   minEngine: z.string().default("0.1.0"),
   cover: z.string().optional(),

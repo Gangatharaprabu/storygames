@@ -1,0 +1,31 @@
+{
+  "id": "the-clockmakers-shop",
+  "version": "0.1.0",
+  "title": "The Clockmaker's Shop",
+  "synopsis": "Every clock in Mr. Oda's shop stopped at the same minute. Ren has until closing time to find out why.",
+  "tags": [
+    "mystery",
+    "puzzle",
+    "short"
+  ],
+  "estimatedMinutes": 2,
+  "minEngine": "0.1.0",
+  "cast": [
+    {
+      "character": "ren",
+      "role": "protagonist"
+    },
+    {
+      "character": "oda",
+      "role": "npc"
+    }
+  ],
+  "startScene": "shop",
+  "flags": {
+    "arrived": false,
+    "noticed_clocks": false
+  },
+  "exports": [
+    "noticed_clocks"
+  ]
+}

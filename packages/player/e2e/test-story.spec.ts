@@ -11,10 +11,10 @@ async function finishDialogue(page: Page, pick?: RegExp) {
   await expect(dialogue).toBeHidden();
 }
 
-/** Open the story from its title screen. */
-async function start(page: Page, url = "/") {
+/** Open the story's page and press Play. */
+async function start(page: Page, url = "/#/story/the-last-ferry") {
   await page.goto(url);
-  await page.getByRole("button", { name: "Play" }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(page.getByTestId("dialogue")).toBeVisible();
 }
 
@@ -25,10 +25,7 @@ async function setDials(page: Page, values: number[]) {
 }
 
 test("plays The Last Ferry to the end (help Tomo route)", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "The Last Ferry" })).toBeVisible();
-  await page.screenshot({ path: "test-results/00-title.png" });
-  await page.getByRole("button", { name: "Play" }).click();
+  await start(page);
   await expect(page.getByText("The last light is leaving the harbour")).toBeVisible();
   await page.screenshot({ path: "test-results/01-arrival.png" });
   await finishDialogue(page);
@@ -66,6 +63,7 @@ test("plays The Last Ferry to the end (help Tomo route)", async ({ page }) => {
   await page.screenshot({ path: "test-results/04-farewell.png" });
   await finishDialogue(page);
   await expect(page.getByText("The End")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Next: The Island Lighthouse" })).toBeVisible();
   await page.screenshot({ path: "test-results/05-end.png" });
 });
 
@@ -75,7 +73,6 @@ test("resumes after a reload", async ({ page }) => {
   await page.getByRole("button", { name: "Tomo, the ferryman" }).click();
   await finishDialogue(page, /Insist/);
   await page.reload();
-  await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.getByRole("button", { name: "Noticeboard" })).toBeAttached();
   await expect(page.getByTestId("dialogue")).toBeHidden();
 });
@@ -84,7 +81,7 @@ test.describe("phone held sideways", () => {
   test.use({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
 
   test("asks the player to turn the phone upright", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/#/play/the-last-ferry");
     await expect(page.getByText("Turn your phone upright to play.")).toBeVisible();
   });
 });
@@ -101,8 +98,7 @@ test.describe("typewriter", () => {
   test.use({ reducedMotion: "no-preference" });
 
   test("first tap finishes the line, second tap moves on", async ({ page }) => {
-    await page.goto("/");
-    await page.getByRole("button", { name: "Play" }).click();
+    await page.goto("/#/play/the-last-ferry");
     const typed = page.locator(".sg-line");
     const untyped = page.locator(".sg-untyped");
     await expect(untyped).not.toHaveText(""); // still typing
@@ -115,7 +111,7 @@ test.describe("typewriter", () => {
 });
 
 test("debug panel jumps between scenes", async ({ page }) => {
-  await start(page, "/?debug");
+  await start(page, "/?debug#/story/the-last-ferry");
   await page.getByRole("button", { name: "Open debug panel" }).click();
   await expect(page.getByRole("complementary", { name: "Debug panel" })).toBeVisible();
   await page.screenshot({ path: "test-results/06-debug.png" });

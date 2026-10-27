@@ -1,0 +1,35 @@
+{
+  "id": "lighthouse-door",
+  "type": "combination-lock",
+  "presentation": "fullscreen",
+  "title": "The Sealed Door",
+  "prompt": "Three stone dials, each carved with the sky.",
+  "config": {
+    "dials": 3,
+    "symbols": [
+      "☀",
+      "☾",
+      "★",
+      "≈"
+    ],
+    "solution": [
+      "☾",
+      "★",
+      "☀"
+    ]
+  },
+  "skin": {
+    "body": "art/door-carving.svg"
+  },
+  "hints": [
+    "The carved rock on the beach tells a story.",
+    "Night comes first, then the stars, and dawn last.",
+    "☾ ★ ☀"
+  ],
+  "onSolve": [
+    {
+      "do": "goto",
+      "scene": "lamp-room"
+    }
+  ]
+}
