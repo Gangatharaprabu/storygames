@@ -427,3 +427,10 @@ h1, h2, h3 { font-family: var(--font); line-height: 1.15; letter-spacing: -0.02e
 @media (prefers-reduced-motion: reduce) {
   .featured-card { transition: none; }
 }
+
+/* Sideways strips scroll sideways only, and don't trigger the browser's back/forward swipe
+   when they reach an end. (Vertical wheel movement over them goes to the page: scroll.ts.) */
+.featured-track, .pills { overflow-y: hidden; overscroll-behavior-x: contain; }
+@media (max-width: 759px) {
+  .rail, .characters { overflow-y: hidden; overscroll-behavior-x: contain; }
+}

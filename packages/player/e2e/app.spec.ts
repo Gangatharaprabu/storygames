@@ -152,3 +152,26 @@ test("back button returns to where you came from, or home from a shared link", a
   await page.getByRole("button", { name: "Back" }).click();
   await expect(page).toHaveURL(/#\/$/);
 });
+
+test.describe("narrow desktop window (trackpad/mouse)", () => {
+  test.use({ viewport: { width: 370, height: 770 }, isMobile: false, hasTouch: false, deviceScaleFactor: 1 });
+
+  test("scrolling over the carousel or a row scrolls the page; sideways scrolls the row", async ({ page }) => {
+    await page.goto("/#/");
+    const track = page.locator(".featured-track");
+    const box = (await track.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    // A trackpad "vertical" swipe: mostly down, a little sideways.
+    for (let i = 0; i < 5; i++) await page.mouse.wheel(4, 60);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(200);
+    expect(await track.evaluate((e) => e.scrollLeft)).toBe(0);
+
+    // A sideways swipe moves the strip, not the page.
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const y = await page.evaluate(() => window.scrollY);
+    for (let i = 0; i < 5; i++) await page.mouse.wheel(80, 5);
+    await expect.poll(() => track.evaluate((e) => e.scrollLeft)).toBeGreaterThan(100);
+    expect(await page.evaluate(() => window.scrollY)).toBe(y);
+  });
+});
