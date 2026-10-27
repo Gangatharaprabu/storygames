@@ -19,7 +19,9 @@
   color-scheme: dark;
 }
 
-html, body { overflow: auto; overscroll-behavior: none; }
+/* Only the page itself scrolls. (Giving <body> its own overflow plus overscroll-behavior
+   turns it into a scroll container that swallows touch swipes: pages stop scrolling.) */
+html { overscroll-behavior-y: none; }
 body { background: var(--bg); color: var(--text); font: 16px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
 a { color: inherit; }
 h1, h2, h3 { font-family: var(--font); line-height: 1.15; letter-spacing: -0.02em; }
