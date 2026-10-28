@@ -23,7 +23,7 @@ test("write a story from scratch, play it, publish it", async ({ page }) => {
   await page.getByRole("link", { name: "Characters" }).click();
   answer(page, "Aki");
   await page.getByRole("button", { name: "+ New" }).click();
-  await expect(page.getByRole("heading", { name: "Aki" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aki", exact: true })).toBeVisible();
   await page.getByRole("textbox", { name: "New expression" }).fill("happy");
   await page.getByRole("button", { name: "Add expression" }).click();
   await expect(page.getByText("happy portrait")).toBeVisible();
@@ -136,4 +136,35 @@ test("a story with problems can't be published, and says why", async ({ page }) 
   await page.getByRole("button", { name: "Check for problems" }).click();
   await expect(page.getByText(/thing(s)? to fix/)).toBeVisible();
   await expect(page.locator(".st-problem-error").first()).toContainText("dialogue.json");
+});
+
+test("a story can only be deleted once it's off staging and live", async ({ page }) => {
+  await page.goto("/#/story/the-lost-kite/overview");
+  await page.getByRole("button", { name: "Delete story…" }).click();
+  await expect(page.getByText("It's still on live and staging")).toBeVisible();
+
+  await page.getByRole("link", { name: "Publish" }).click();
+  page.once("dialog", (d) => void d.accept());
+  await page.getByRole("button", { name: "Take off the live site" }).click();
+  await expect(page.getByText("Taken off the live site")).toBeVisible();
+  await page.getByRole("button", { name: "Take off staging" }).click();
+  await expect(page.getByText("Taken off staging")).toBeVisible();
+
+  // Aki can't go while the story still uses them.
+  await page.goto("/#/characters/aki");
+  await page.getByRole("button", { name: "Delete character…" }).click();
+  await expect(page.getByText("Aki is in The Lost Red Kite")).toBeVisible();
+
+  await page.goto("/#/story/the-lost-kite/overview");
+  page.once("dialog", (d) => void d.accept("DELETE"));
+  await page.getByRole("button", { name: "Delete story…" }).click();
+  await expect(page.getByText("No stories yet.")).toBeVisible();
+  expect(existsSync(resolve(storage, "studio/stories/the-lost-kite"))).toBe(false);
+  // Published files are kept (immutable), but the app no longer lists the story.
+  expect(JSON.parse(readFileSync(resolve(storage, "catalogs/live.json"), "utf8")).stories).toEqual([]);
+
+  page.once("dialog", (d) => void d.accept());
+  await page.goto("/#/characters/aki");
+  await page.getByRole("button", { name: "Delete character…" }).click();
+  await expect(page.getByText("No characters yet.")).toBeVisible();
 });

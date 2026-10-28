@@ -75,6 +75,10 @@ a story of another series.
    that never changes. Check it on the player app with `?channel=staging`.
 2. **Make it live.** The same version goes in front of everyone.
 
+**Deleting**: a story's Overview tab ends with *Delete story…*. Take it off staging and live
+first (Publish tab); the Studio won't delete a story players can still see. A character can
+be deleted (bottom of their page) once no story has them in its cast.
+
 To change a published story, edit it and publish a new version (the Publish tab suggests the
 next number). Players in the middle of the old version keep playing it.
 

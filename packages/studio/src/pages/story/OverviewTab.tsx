@@ -1,8 +1,11 @@
 import type { CastMember } from "@storygames/pack-spec";
 import type { z } from "zod";
 import { Check, Choice, FilePicker, LongText, Num, StringList, Text, Thumb } from "../../components/fields.tsx";
-import { characterRoot, listSeries, listStories } from "../../drafts.ts";
-import { href } from "../../router.ts";
+import { readChannel } from "@storygames/builder";
+import { useState } from "react";
+import { apiStore } from "../../api.ts";
+import { characterRoot, deleteStory, listSeries, listStories } from "../../drafts.ts";
+import { go, href } from "../../router.ts";
 import { useAsync, useStudio } from "../../state.tsx";
 import { useStory } from "./context.tsx";
 
@@ -128,6 +131,8 @@ export function OverviewTab() {
           ))}
         </select>
       </section>
+
+      <DeleteStory />
     </div>
   );
 }
@@ -139,5 +144,45 @@ function Field2({ label, hint, children }: { label: string; hint?: string; child
       {children}
       {hint && <span className="st-hint">{hint}</span>}
     </div>
+  );
+}
+
+/** Deletes the story's drafts, once it's off staging and live. */
+function DeleteStory() {
+  const { api, drafts } = useStudio();
+  const { id, root, story } = useStory();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  const remove = async () => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      const store = apiStore(api);
+      const [staging, live] = await Promise.all([readChannel(store, "staging"), readChannel(store, "live")]);
+      const on = [live.stories[id] && "live", staging.stories[id] && "staging"].filter(Boolean);
+      if (on.length) {
+        setError(`It's still on ${on.join(" and ")}. Take it off there first (Publish tab), then delete it.`);
+        return;
+      }
+      if (prompt(`This deletes “${story.title}” from the Studio for good: scenes, dialogue, art, everything.\n\nType DELETE to confirm.`) !== "DELETE") return;
+      await drafts.flush().catch(() => {});
+      await deleteStory(api, id);
+      drafts.forget(root);
+      go();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <section className="st-card st-danger-zone">
+      <h3>Delete this story</h3>
+      <p className="st-muted">Removes it from the Studio. Characters stay in the library. Versions you published stay stored but unseen once the story is off staging and live.</p>
+      <button type="button" className="st-button st-danger" disabled={busy} onClick={() => void remove()}>
+        {busy ? "Deleting…" : "Delete story…"}
+      </button>
+      {error && <p className="st-error">{error}</p>}
+    </section>
   );
 }

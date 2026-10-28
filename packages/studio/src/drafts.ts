@@ -159,3 +159,22 @@ export async function listSeries(api: StudioApi): Promise<SeriesJson[]> {
   const all = await Promise.all(keys.map((k) => api.json<SeriesJson>(k).catch(() => undefined)));
   return all.filter((s): s is SeriesJson => Boolean(s)).sort((a, b) => a.title.localeCompare(b.title));
 }
+
+/** Deletes every draft file under a prefix. */
+async function deleteAll(api: StudioApi, prefix: string) {
+  const keys = await api.list(prefix);
+  for (const key of keys) await api.delete(key);
+  return keys.length;
+}
+
+/** Deletes a story's drafts. Published versions are untouched (take it off staging/live first). */
+export const deleteStory = (api: StudioApi, id: string) => deleteAll(api, storyRoot(id));
+
+export const deleteCharacter = (api: StudioApi, id: string) => deleteAll(api, characterRoot(id));
+
+/** Titles of the stories whose cast includes a character. */
+export async function storiesWith(api: StudioApi, character: string): Promise<string[]> {
+  const stories = await listStories(api);
+  const casts = await Promise.all(stories.map((s) => api.json<StoryJson>(`${storyRoot(s.id)}story.json`)));
+  return stories.filter((_, i) => casts[i]?.cast?.some((m) => m.character === character)).map((s) => s.title);
+}

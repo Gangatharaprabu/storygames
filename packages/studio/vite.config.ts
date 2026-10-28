@@ -29,6 +29,8 @@ function localApi(): Plugin {
     },
     async delete(key) {
       rmSync(file(key), { force: true });
+      // Like R2, no empty folders are left behind.
+      for (let dir = dirname(file(key)); dir.startsWith(root + sep) && !readdirSync(dir).length; dir = dirname(dir)) rmSync(dir, { recursive: true });
     },
     async list(prefix) {
       const dir = join(root, ...prefix.split("/").slice(0, -1));

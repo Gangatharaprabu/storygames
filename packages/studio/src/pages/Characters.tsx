@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Color, FilePicker, LongText, Text, Thumb } from "../components/fields.tsx";
-import { characterRoot, createCharacter, listCharacters, type CharacterJson } from "../drafts.ts";
+import { characterRoot, createCharacter, deleteCharacter, listCharacters, storiesWith, type CharacterJson } from "../drafts.ts";
 import { go, href } from "../router.ts";
 import { useAsync, useDraft, useStudio } from "../state.tsx";
 
@@ -40,13 +40,15 @@ export function Characters({ selected }: { selected?: string }) {
           })}
         </ul>
       </aside>
-      {current ? <CharacterEditor key={current} id={current} onRenamed={list.reload} /> : <p className="st-page st-muted">No characters yet.</p>}
+      {current ? <CharacterEditor key={current} id={current} onRenamed={list.reload} onDeleted={() => { list.reload(); go("characters"); }} /> : <p className="st-page st-muted">No characters yet.</p>}
     </div>
   );
 }
 
-function CharacterEditor({ id, onRenamed }: { id: string; onRenamed: () => void }) {
+function CharacterEditor({ id, onRenamed, onDeleted }: { id: string; onRenamed: () => void; onDeleted: () => void }) {
+  const { api, drafts } = useStudio();
   const root = characterRoot(id);
+  const [deleteError, setDeleteError] = useState<string>();
   const [c, setC] = useDraft<CharacterJson>(`${root}character.json`);
   const [variant, setVariant] = useState<string>();
   const [expr, setExpr] = useState("");
@@ -147,6 +149,26 @@ function CharacterEditor({ id, onRenamed }: { id: string; onRenamed: () => void 
           <button className="st-button">Add expression</button>
         </form>
         <p className="st-hint">A new expression starts with a copy of the default portrait: replace it with the right one. Keep every portrait the same size and framing.</p>
+      </section>
+
+      <section className="st-card st-danger-zone">
+        <h3>Delete {c.name}</h3>
+        <button
+          type="button"
+          className="st-button st-danger"
+          onClick={async () => {
+            setDeleteError(undefined);
+            const used = await storiesWith(api, id);
+            if (used.length) return setDeleteError(`${c.name} is in ${used.join(", ")}. Take them out of the cast first (story → Overview).`);
+            if (!confirm(`Delete ${c.name} and all their pictures from the library?`)) return;
+            await deleteCharacter(api, id);
+            drafts.forget(root);
+            onDeleted();
+          }}
+        >
+          Delete character…
+        </button>
+        {deleteError && <p className="st-error">{deleteError}</p>}
       </section>
     </div>
   );

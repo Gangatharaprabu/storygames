@@ -298,3 +298,4 @@ input[type="color"] { width: 38px; height: 34px; padding: 2px; border: 1px solid
 
 .st-actions ol > li, .st-actions { min-width: 0; }
 .st-inspector .st-card > .st-danger { margin-top: 14px; }
+.st-danger-zone { border-color: color-mix(in srgb, var(--danger) 30%, var(--line)); }
