@@ -3,8 +3,18 @@ import type { SaveData } from "@storygames/engine";
 import type { ProfileData } from "./profile.ts";
 import type { Remote } from "./sync.ts";
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+/**
+ * The project address, tidied: people often copy it with a trailing "/" or with the
+ * "/rest/v1/" suffix the dashboard shows, which makes every request "Invalid path".
+ */
+export function normaliseSupabaseUrl(raw: string | undefined): string | undefined {
+  const trimmed = raw?.trim();
+  if (!trimmed) return undefined;
+  return trimmed.replace(/\/+$/, "").replace(/\/(rest|auth|storage|functions|realtime)\/v1$/i, "").replace(/\/+$/, "");
+}
+
+const url = normaliseSupabaseUrl(import.meta.env.VITE_SUPABASE_URL);
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 
 /** Accounts are available only when the app was built with the Supabase settings. */
 export const accountsEnabled = Boolean(url && anonKey);

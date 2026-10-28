@@ -164,3 +164,13 @@ describe("sign-in error messages", async () => {
     expect(friendly("send", "For security purposes, you can only request this after 52 seconds.")).toMatch(/wait a minute/);
   });
 });
+
+it("tidies the Supabase project address as people tend to copy it", async () => {
+  const { normaliseSupabaseUrl } = await import("../packages/player/src/data/supabase.ts");
+  const clean = "https://abcd.supabase.co";
+  for (const raw of [clean, `${clean}/`, `${clean}/rest/v1/`, `${clean}/rest/v1`, ` ${clean}/auth/v1/ \n`]) {
+    expect(normaliseSupabaseUrl(raw)).toBe(clean);
+  }
+  expect(normaliseSupabaseUrl("")).toBeUndefined();
+  expect(normaliseSupabaseUrl(undefined)).toBeUndefined();
+});
