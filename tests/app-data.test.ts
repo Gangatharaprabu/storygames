@@ -152,3 +152,21 @@ describe("series that branch into new series", () => {
     expect(searchSeries(catalog.series, "lighthouse").map((s) => s.id)).toEqual(["tales"]);
   });
 });
+
+describe("loadCatalog", () => {
+  it("treats a missing story list (nothing published yet) as an empty shelf", async () => {
+    const { loadCatalog } = await import("../packages/player/src/data/catalog.ts");
+    const g = globalThis as Record<string, unknown>;
+    const saved = { location: g.location, fetch: g.fetch };
+    g.location = { href: "https://example.pages.dev/#/", search: "" };
+    g.fetch = async () => new Response("Not found", { status: 404 });
+    try {
+      const c = await loadCatalog();
+      expect(c.stories).toEqual([]);
+      expect(c.series).toEqual([]);
+    } finally {
+      g.location = saved.location;
+      g.fetch = saved.fetch;
+    }
+  });
+});

@@ -18,7 +18,7 @@ export function App() {
   if (catalog.status === "loading") return <div className="loading" aria-label="Loading" />;
   if (catalog.status === "error") {
     return (
-      <section className="page empty">
+      <section className="page empty app-main">
         <h1 className="page-title">Can't reach the stories</h1>
         <p className="muted">{catalog.message}</p>
         <button type="button" className="btn" onClick={() => location.reload()}>Try again</button>

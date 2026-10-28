@@ -19,6 +19,11 @@ export function Home({ catalog }: { catalog: Catalog }) {
   return (
     <>
       <h1 className="greeting">{hasPlayed ? `Welcome back, ${profile.name}` : `Hello, ${profile.name}`}</h1>
+      {stories.length === 0 && (
+        <div className="empty">
+          <p>No stories here yet. New ones are on their way.</p>
+        </div>
+      )}
       <Featured catalog={catalog} />
 
       {continuing.length > 0 && (

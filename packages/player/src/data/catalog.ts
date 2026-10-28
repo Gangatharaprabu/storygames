@@ -9,6 +9,8 @@ let pending: Promise<Catalog> | undefined;
 export function loadCatalog(): Promise<Catalog> {
   pending ??= fetch(packUrl(catalogPath()), { cache: "no-cache" })
     .then((r) => {
+      // No list yet means nothing has been published to this channel: an empty shelf, not an error.
+      if (r.status === 404) return { catalogFormat: 1, generatedAt: new Date().toISOString(), stories: [] };
       if (!r.ok) throw new Error(`could not load the story list (${r.status})`);
       return r.json();
     })
