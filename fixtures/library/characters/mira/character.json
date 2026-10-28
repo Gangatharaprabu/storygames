@@ -11,6 +11,12 @@
         "happy": "portraits/happy.svg",
         "worried": "portraits/worried.svg",
         "thinking": "portraits/thinking.svg"
+      },
+      "sprites": {
+        "neutral": "sprites/neutral.svg",
+        "happy": "sprites/happy.svg",
+        "worried": "sprites/worried.svg",
+        "thinking": "sprites/thinking.svg"
       }
     }
   }

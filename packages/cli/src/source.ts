@@ -18,6 +18,8 @@ export const LibraryCharacter = z.object({
     z.object({
       defaultExpression: z.string(),
       portraits: z.record(z.string(), z.string()),
+      /** Full-body art for standing on stage, per expression (optional). */
+      sprites: z.record(z.string(), z.string()).default({}),
     }),
   ),
 });

@@ -7,8 +7,14 @@
     { "id": "tomo", "image": "art/tomo-standing.svg", "rect": { "x": 640, "y": 1180, "w": 180, "h": 380 } },
     { "id": "box-open", "image": "art/box-open.svg", "rect": { "x": 580, "y": 1650, "w": 170, "h": 160 }, "if": { "solved": "tackle-box" } }
   ],
+  "enter": { "type": "fade-black", "ms": 1200 },
   "onEnter": [
+    { "do": "camera", "y": 380, "zoom": 1.8, "ms": 0, "wait": false, "if": { "not": { "flag": "arrived" } } },
+    { "do": "title", "text": "The Last Ferry", "subtitle": "Mira's Journey · Episode 1", "if": { "not": { "flag": "arrived" } } },
+    { "do": "camera", "y": 960, "zoom": 1, "ms": 2600, "if": { "not": { "flag": "arrived" } } },
+    { "do": "enter", "character": "mira", "at": "left", "from": "left", "ms": 900, "if": { "not": { "flag": "arrived" } } },
     { "do": "dialogue", "knot": "arrival", "if": { "not": { "flag": "arrived" } } },
+    { "do": "exit", "character": "mira", "to": "left", "ms": 700, "if": { "not": { "flag": "arrived" } } },
     { "do": "set", "flag": "arrived" }
   ],
   "hotspots": [

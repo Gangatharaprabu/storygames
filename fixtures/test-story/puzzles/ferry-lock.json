@@ -11,5 +11,5 @@
     "Tomo's lantern, or the noticeboard, might help.",
     "Three, one, four."
   ],
-  "onSolve": [{ "do": "goto", "scene": "at-sea" }]
+  "onSolve": [{ "do": "effect", "effect": "shake", "ms": 500 }, { "do": "goto", "scene": "at-sea" }]
 }

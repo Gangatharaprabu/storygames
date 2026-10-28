@@ -78,7 +78,13 @@ export async function buildStory(opts: BuildOptions): Promise<BuildResult> {
       portraits[expr] = to;
       portraitCopies.push([join(dir, file), to]);
     }
-    characters.push({ id: lib.id, name: lib.name, bio: lib.bio, color: lib.color, variant: member.variant, defaultExpression: variant.defaultExpression, portraits });
+    const sprites: Record<string, string> = {};
+    for (const [expr, file] of Object.entries(variant.sprites)) {
+      const to = `characters/${lib.id}/sprite-${expr}${extname(file)}`;
+      sprites[expr] = to;
+      portraitCopies.push([join(dir, file), to]);
+    }
+    characters.push({ id: lib.id, name: lib.name, bio: lib.bio, color: lib.color, variant: member.variant, defaultExpression: variant.defaultExpression, portraits, sprites });
   }
 
   const ink = compileInk(join(storyDir, "narrative"), story.narrative, errors, warnings);

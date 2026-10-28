@@ -38,15 +38,18 @@ function useTypewriter(text: string, token: unknown) {
 export function DialogueBox({
   line,
   assetUrl,
+  onStage = false,
   onAdvance,
   onChoose,
 }: {
   line: DialogueLine;
   assetUrl: (path: string) => string;
+  /** The speaker is standing in the scene, so no close-up portrait is needed. */
+  onStage?: boolean;
   onAdvance: () => void;
   onChoose: (index: number) => void;
 }) {
-  const portrait = line.speaker && line.expression ? line.speaker.portraits[line.expression] : undefined;
+  const portrait = !onStage && line.speaker && line.expression ? line.speaker.portraits[line.expression] : undefined;
   const typing = useTypewriter(line.text, line);
 
   /** First tap finishes the line, the next one moves on. */

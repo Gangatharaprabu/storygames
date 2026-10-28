@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore, type ComponentType, type ReactNode } from "react";
 import type { StorySession } from "@storygames/engine";
 import type { SoundBoard } from "./audio.ts";
+import { CueOverlay, YourTurn, useCuePlayer } from "./Cinematics.tsx";
 import { DialogueBox } from "./DialogueBox.tsx";
 import { PuzzleHost } from "./PuzzleHost.tsx";
 import { RotateNotice } from "./RotateNotice.tsx";
@@ -34,6 +35,7 @@ export function StoryPlayer({ session, assetUrl, puzzleViews, sound, onExit, end
     () => session.view(),
   );
   const { theme, manifest } = session.pack;
+  useCuePlayer(session, view.cue);
 
   const sounds = theme.sounds;
   const music = view.scene.music ? assetUrl(view.scene.music) : undefined;
@@ -67,6 +69,13 @@ export function StoryPlayer({ session, assetUrl, puzzleViews, sound, onExit, end
             session.activateHotspot(id);
           }}
         />
+
+        <CueOverlay view={view} />
+        <YourTurn view={view} />
+        {view.cue && (
+          // Tapping during a cinematic step skips to the end of it.
+          <button type="button" className="sg-skip-cue" aria-label="Skip" data-testid="skip-cue" onClick={() => session.cueDone()} />
+        )}
 
         <div className="sg-corner">
           {onExit && (
@@ -115,6 +124,7 @@ export function StoryPlayer({ session, assetUrl, puzzleViews, sound, onExit, end
           <DialogueBox
             line={view.dialogue}
             assetUrl={assetUrl}
+            onStage={view.stage.some((c) => c.character === view.dialogue!.speaker?.id && !c.leaving)}
             onAdvance={() => session.advance()}
             onChoose={(i) => {
               sfx(sounds.tap);

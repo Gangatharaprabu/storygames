@@ -39,6 +39,7 @@ export function validatePack(input: unknown): ValidationResult {
   const itemIds = unique(pack.items.map((i) => i.id), "items", errors);
   const characterIds = unique(pack.characters.map((c) => c.id), "characters", errors);
   const knots = new Set(pack.narrative.knots);
+  const characters = new Map(pack.characters.map((c) => [c.id, c]));
 
   if (!sceneIds.has(pack.startScene)) {
     errors.push({ path: "startScene", message: `unknown scene "${pack.startScene}"` });
@@ -95,6 +96,21 @@ export function validatePack(input: unknown): ValidationResult {
         case "take":
           if (!itemIds.has(a.item)) errors.push({ path: at, message: `unknown item "${a.item}"` });
           break;
+        case "enter":
+        case "move":
+        case "exit":
+        case "expression": {
+          const c = characters.get(a.character);
+          if (!c) {
+            errors.push({ path: at, message: `"${a.character}" isn't in this story's cast` });
+            break;
+          }
+          const expr = a.do === "enter" ? a.expression : a.do === "expression" ? a.expression : undefined;
+          if (expr && !c.portraits[expr] && !c.sprites[expr]) {
+            errors.push({ path: at, message: `${c.name} has no "${expr}" expression (has: ${Object.keys({ ...c.portraits, ...c.sprites }).join(", ")})` });
+          }
+          break;
+        }
       }
     });
   };

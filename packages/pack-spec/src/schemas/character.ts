@@ -14,8 +14,10 @@ export const CharacterSnapshot = z.object({
   /** Accent colour for this character's name/dialogue. */
   color: z.string(),
   defaultExpression: z.string(),
-  /** expression name → portrait image */
+  /** expression name → portrait image (head and shoulders, shown in the dialogue box) */
   portraits: z.record(z.string(), AssetPath),
+  /** expression name → full-body sprite for standing on stage (optional; portraits are used if missing) */
+  sprites: z.record(z.string(), AssetPath).default({}),
 });
 export type CharacterSnapshot = z.infer<typeof CharacterSnapshot>;
 

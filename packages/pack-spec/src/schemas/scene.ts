@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Action, AssetPath, Condition, Id, Rect } from "./common.ts";
+import { Action, AssetPath, Camera, Condition, Id, Rect, Transition } from "./common.ts";
 
 export const Layer = z.object({
   id: Id,
@@ -26,7 +26,16 @@ export const Scene = z.object({
   music: AssetPath.optional(),
   layers: z.array(Layer).default([]),
   hotspots: z.array(Hotspot).default([]),
-  /** Runs every time the player enters the scene. */
+  /** How the scene arrives and leaves (default: fade through black). */
+  enter: Transition.default({ type: "fade-black", ms: 700 }),
+  exit: Transition.default({ type: "fade-black", ms: 600 }),
+  /** Camera framing when the scene starts (default: the whole scene). */
+  camera: Camera.default({ x: 540, y: 960, zoom: 1 }),
+  /**
+   * Runs every time the player enters the scene: the scene's opening, like a short anime
+   * cutscene (title, camera moves, characters, dialogue). When it finishes, it's the
+   * player's turn to explore.
+   */
   onEnter: z.array(Action).default([]),
 });
 export type Scene = z.infer<typeof Scene>;

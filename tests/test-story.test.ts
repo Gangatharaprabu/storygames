@@ -7,7 +7,7 @@ import { puzzleLogic } from "../packages/puzzles/src/logic.ts";
 async function newSession() {
   const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
   expect(result.errors).toEqual([]);
-  const session = new StorySession(result.pack!, { puzzles: puzzleLogic });
+  const session = new StorySession(result.pack!, { instantCues: true, puzzles: puzzleLogic });
   session.start();
   return session;
 }
@@ -107,7 +107,7 @@ describe("The Last Ferry", () => {
     const save = JSON.parse(JSON.stringify(s.save()));
 
     const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
-    const resumed = new StorySession(result.pack!, { puzzles: puzzleLogic, save });
+    const resumed = new StorySession(result.pack!, { instantCues: true, puzzles: puzzleLogic, save });
     resumed.start();
     expect(resumed.view().state.flags.helped_ferryman).toBe(true);
     expect(resumed.view().dialogue).toBeNull();
@@ -144,7 +144,7 @@ describe("debug tools", () => {
     const save = s.save();
     save.state.scene = "deleted-scene";
     const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
-    const fresh = new StorySession(result.pack!, { puzzles: puzzleLogic, save });
+    const fresh = new StorySession(result.pack!, { instantCues: true, puzzles: puzzleLogic, save });
     fresh.start();
     expect(fresh.view().scene.id).toBe("harbour");
   });
@@ -158,7 +158,7 @@ describe("saving mid-conversation", () => {
     expect(save.replayOnEnter).toBe(true);
 
     const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
-    const resumed = new StorySession(result.pack!, { puzzles: puzzleLogic, save });
+    const resumed = new StorySession(result.pack!, { instantCues: true, puzzles: puzzleLogic, save });
     resumed.start();
     expect(resumed.view().dialogue?.text).toMatch(/The last light/);
     finishDialogue(resumed);
@@ -174,10 +174,94 @@ describe("saving mid-conversation", () => {
     expect(save.state.flags.talked_to_tomo).toBe(false);
 
     const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
-    const resumed = new StorySession(result.pack!, { puzzles: puzzleLogic, save });
+    const resumed = new StorySession(result.pack!, { instantCues: true, puzzles: puzzleLogic, save });
     resumed.start();
     expect(resumed.view().dialogue).toBeNull();
     resumed.activateHotspot("tomo");
     expect(resumed.view().dialogue?.text).toMatch(/Evening/); // the first meeting again, not "Still here?"
+  });
+});
+
+describe("cinematics", () => {
+  async function cinematicSession() {
+    const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
+    const s = new StorySession(result.pack!, { puzzles: puzzleLogic });
+    s.start();
+    return s;
+  }
+
+  it("plays the harbour opening step by step, then hands over to the player", async () => {
+    const s = await cinematicSession();
+    // The opening framing is set before the scene fades in.
+    expect(s.view().cue).toEqual({ kind: "transition", phase: "in", transition: { type: "fade-black", ms: 1200 } });
+    expect(s.view().camera.zoom).toBe(1.8);
+    expect(s.view().cutscene).toBe(true);
+    expect(s.view().busy).toBe(true);
+
+    s.activateHotspot("tomo"); // ignored while a cue plays
+    expect(s.view().dialogue).toBeNull();
+
+    s.cueDone();
+    expect(s.view().cue).toMatchObject({ kind: "title", text: "The Last Ferry" });
+    s.cueDone();
+    expect(s.view().cue).toEqual({ kind: "camera", ms: 2600 });
+    expect(s.view().camera).toEqual({ x: 540, y: 960, zoom: 1 });
+    s.cueDone();
+    expect(s.view().cue).toEqual({ kind: "stage", ms: 900 });
+    expect(s.view().stage.map((c) => [c.character, c.at, c.from])).toEqual([["mira", "left", "left"]]);
+    expect(s.view().stage[0]!.snapshot.sprites.neutral).toMatch(/sprite-neutral/);
+    s.cueDone();
+    expect(s.view().dialogue?.speaker).toBeUndefined();
+    finishDialogue(s);
+
+    expect(s.view().stage[0]!.leaving).toEqual({ to: "left" });
+    expect(s.view().cutscene).toBe(true);
+    s.cueDone();
+    expect(s.view().stage).toEqual([]);
+    expect(s.view().cue).toBeNull();
+    expect(s.view().cutscene).toBe(false);
+    expect(s.view().busy).toBe(false);
+  });
+
+  it("leaves a scene before entering the next, and ends after the last scene leaves", async () => {
+    const s = await cinematicSession();
+    while (s.view().cue || s.view().dialogue) {
+      if (s.view().cue) s.cueDone();
+      else finishDialogue(s);
+    }
+    s.debug.setFlag("talked_to_tomo", true);
+    s.activateHotspot("ferry");
+    s.submitPuzzle(["3", "1", "4"]);
+    expect(s.view().cue).toMatchObject({ kind: "effect", effect: "shake" });
+    s.cueDone();
+    expect(s.view().cue).toMatchObject({ kind: "transition", phase: "out" });
+    expect(s.view().scene.id).toBe("harbour");
+    s.cueDone();
+    expect(s.view().scene.id).toBe("at-sea");
+    expect(s.view().cue).toMatchObject({ kind: "transition", phase: "in", transition: { type: "fade-white" } });
+    expect(s.view().stage.map((c) => c.character)).toEqual(["mira"]);
+    expect(s.view().camera.zoom).toBe(1); // the slow pan was already started
+    s.cueDone();
+    finishDialogue(s);
+    expect(s.view().cue).toEqual({ kind: "wait", ms: 700 });
+    s.cueDone();
+    expect(s.view().cue).toMatchObject({ kind: "transition", phase: "out", transition: { type: "fade-black", ms: 1600 } });
+    expect(s.view().completed).toBe(false);
+    s.cueDone();
+    expect(s.view().completed).toBe(true);
+  });
+
+  it("a resumed save opens with the scene's entrance and no leftover cast", async () => {
+    const s = await newSession();
+    finishDialogue(s);
+    const save = s.save();
+    const result = await buildStory({ storyDir: "fixtures/test-story", libraryDir: "fixtures/library" });
+    const resumed = new StorySession(result.pack!, { puzzles: puzzleLogic, save });
+    resumed.start();
+    expect(resumed.view().cue).toMatchObject({ kind: "transition", phase: "in" });
+    expect(resumed.view().stage).toEqual([]);
+    expect(resumed.view().camera.zoom).toBe(1);
+    resumed.cueDone();
+    expect(resumed.view().busy).toBe(false);
   });
 });

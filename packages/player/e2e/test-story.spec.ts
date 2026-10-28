@@ -15,7 +15,19 @@ async function finishDialogue(page: Page, pick?: RegExp) {
 async function start(page: Page, url = "/#/story/the-last-ferry") {
   await page.goto(url);
   await page.getByRole("button", { name: "Play", exact: true }).click();
-  await expect(page.getByTestId("dialogue")).toBeVisible();
+  await skipOpening(page);
+}
+
+/** Tap through the scene's opening cinematic until the first line of dialogue. */
+async function skipOpening(page: Page) {
+  const dialogue = page.getByTestId("dialogue");
+  const skip = page.getByTestId("skip-cue");
+  for (let i = 0; i < 40 && !(await dialogue.isVisible()); i++) {
+    // The cue can end mid-click, so don't wait long for the button.
+    if (await skip.isVisible()) await skip.click({ timeout: 300 }).catch(() => {});
+    else await page.waitForTimeout(50);
+  }
+  await expect(dialogue).toBeVisible();
 }
 
 async function setDials(page: Page, values: number[]) {
@@ -99,6 +111,7 @@ test.describe("typewriter", () => {
 
   test("first tap finishes the line, second tap moves on", async ({ page }) => {
     await page.goto("/#/play/the-last-ferry");
+    await skipOpening(page);
     const typed = page.locator(".sg-line");
     const untyped = page.locator(".sg-untyped");
     await expect(untyped).not.toHaveText(""); // still typing
@@ -124,4 +137,28 @@ test("debug panel jumps between scenes", async ({ page }) => {
 test("the debug panel is hidden from players", async ({ page }) => {
   await start(page);
   await expect(page.getByRole("button", { name: "Open debug panel" })).toHaveCount(0);
+});
+
+test("the opening plays like an anime scene: title, camera pan, Mira walks in", async ({ page }) => {
+  await page.goto("/#/story/the-last-ferry");
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(page.locator(".sg-letterbox[data-on]")).toBeAttached();
+  await expect(page.getByRole("status").filter({ hasText: "The Last Ferry" })).toBeVisible({ timeout: 5000 });
+  await page.screenshot({ path: "test-results/10-title-card.png" });
+  // Mira walks on from the left once the camera has panned down.
+  await expect(page.locator('.sg-actor[data-actor="mira"]')).toBeVisible({ timeout: 8000 });
+  await expect(page.getByTestId("dialogue")).toBeVisible({ timeout: 8000 });
+  await page.screenshot({ path: "test-results/11-mira-on-stage.png" });
+  // While she's on stage she speaks from the scene, not from a close-up portrait.
+  const miraLine = page.getByText("If I miss the ferry tonight");
+  for (let i = 0; i < 4 && !(await miraLine.isVisible()); i++) await page.getByRole("button", { name: "Continue" }).click();
+  await expect(miraLine).toBeVisible();
+  await expect(page.locator(".sg-portrait")).toHaveCount(0);
+  await finishDialogue(page);
+  // She leaves, the bars lift, and it's the player's turn.
+  await expect(page.locator('.sg-actor[data-actor="mira"]')).toHaveCount(0);
+  await expect(page.locator(".sg-letterbox[data-on]")).toHaveCount(0);
+  await expect(page.getByText("Tap around to explore")).toBeVisible();
+  await page.screenshot({ path: "test-results/12-your-turn.png" });
+  await expect(page.getByRole("button", { name: "Tomo, the ferryman" })).toBeEnabled();
 });

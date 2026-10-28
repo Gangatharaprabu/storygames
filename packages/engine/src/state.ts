@@ -1,4 +1,15 @@
-import type { FlagValue } from "@storygames/pack-spec";
+import type { Camera, FlagValue, StagePosition } from "@storygames/pack-spec";
+
+/** A character standing on stage. */
+export interface StageEntry {
+  character: string;
+  at: StagePosition;
+  expression: string;
+  /** How they arrived (drives the entrance animation). */
+  from: "left" | "right" | "bottom" | "fade";
+  /** Set while they're walking off; removed when that finishes. */
+  leaving?: { to: "left" | "right" | "bottom" | "fade" };
+}
 
 /** Everything that changes during play. Plain JSON, so it can be saved anywhere. */
 export interface GameState {
@@ -9,6 +20,9 @@ export interface GameState {
   hintsUsed: Record<string, number>;
   visited: string[];
   completed: boolean;
+  /** Characters on stage and the camera framing (older saves don't have them). */
+  stage?: StageEntry[];
+  camera?: Camera;
 }
 
 export interface SaveData {

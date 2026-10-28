@@ -39,6 +39,9 @@ my-story/
 - Portrait canvas: **1080 × 1920**. All `rect`s use these units, origin top-left.
 - Phones taller than 9:16 show the theme background above and below the stage.
 - Portraits: every expression of a character the same size and framing.
+- Sprites (optional): full-body art per expression, for characters who stand in a scene
+  (`"sprites": { "neutral": "sprites/neutral.png" }` next to `portraits` in `character.json`).
+  Feet on the bottom edge, roughly 1:2 wide-to-tall. Without sprites, the portrait is used.
 - Interactive objects that change (opened box, picked-up item) are separate layers with an `if`.
 
 ## Sound
@@ -77,6 +80,49 @@ End knots with `-> DONE`.
   "hotspots": [{ "id": "ferry", "label": "The chained ferry", "rect": {…}, "actions": [{ "do": "puzzle", "puzzle": "ferry-lock" }] }]
 }
 ```
+
+## Cinematics: scenes that play like an anime
+
+Every scene **arrives** and **leaves** with a transition, and its `onEnter` plays as a
+cutscene (black bars, no tapping around) until it's the player's turn, when the bars lift
+and "Tap around to explore" appears. Dialogue and puzzles stop the cutscene for the player;
+anything else plays for its time, and a tap skips it.
+
+```json
+{
+  "id": "harbour",
+  "enter": { "type": "fade-black", "ms": 1200 },
+  "exit": { "type": "fade-black", "ms": 600 },
+  "camera": { "x": 540, "y": 960, "zoom": 1 },
+  "onEnter": [
+    { "do": "camera", "y": 380, "zoom": 1.8, "ms": 0 },
+    { "do": "title", "text": "The Last Ferry", "subtitle": "Episode 1" },
+    { "do": "camera", "y": 960, "zoom": 1, "ms": 2600 },
+    { "do": "enter", "character": "mira", "at": "left", "from": "left" },
+    { "do": "dialogue", "knot": "arrival" },
+    { "do": "exit", "character": "mira", "to": "left" }
+  ]
+}
+```
+
+| Action | What it does |
+|---|---|
+| `wait` `ms` | A pause. |
+| `camera` `x` `y` `zoom` `ms` | Pans/zooms to a point of the 1080 × 1920 scene (zoom 1–4). |
+| `enter` `character` `at` `from` `expression` | A character walks on (`from`: left, right, bottom, fade). Positions: far-left, left, center, right, far-right. |
+| `move` `character` `to` | Walks to another position. |
+| `expression` `character` `expression` | Changes their face without dialogue. |
+| `exit` `character` `to` | Walks off. |
+| `title` `text` `subtitle` `ms` | A title card. |
+| `effect` `effect` `ms` | `shake`, `flash` or `flash-black`. |
+| `goto` `scene` `transition` | Leaves through this scene's `exit` (or `transition`), arrives through the next scene's `enter`. |
+
+- Transitions: `none`, `fade`, `fade-black`, `fade-white`, `slide-left`, `slide-right`, `slide-up`, `zoom`, `iris`, `wipe`.
+- `camera`, `enter`, `move` and `exit` take `"wait": false` to happen while the story carries on
+  (e.g. a slow pan under dialogue). With `"ms": 0` they happen instantly; at the start of
+  `onEnter` they're applied before the scene fades in, so it opens already framed.
+- While a character on stage speaks, they're lit and others dim; their dialogue uses the sprite, not a close-up.
+- Players who ask their device for reduced motion get instant cuts (titles and waits still pause).
 
 ## Puzzles
 

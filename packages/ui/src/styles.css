@@ -46,8 +46,10 @@
   --u: calc(var(--sg-w) / 100);
 }
 
-.sg-scene, .sg-scene-art { position: absolute; inset: 0; }
-.sg-scene-art { filter: var(--sg-grade); animation: sg-fade-in 0.7s ease-out; }
+.sg-scene, .sg-camera, .sg-scene-art { position: absolute; inset: 0; }
+.sg-scene { background: #000; }
+.sg-scene-art { filter: var(--sg-grade); }
+.sg-scene[data-completed] { opacity: 0.4; transition: opacity 0.6s; }
 .sg-fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .sg-layer { position: absolute; object-fit: contain; }
 
@@ -227,6 +229,114 @@
 .sg-lock-wrong { margin: 0; color: var(--sg-muted); }
 .sg-shake { animation: sg-shake 0.4s; }
 
+/* ---- Cinematics ---------------------------------------------------------
+   Scene transitions play on .sg-scene with data-transition + data-phase ("out" leaves,
+   "in" arrives) for --sg-cue-ms. Fill mode "both" holds the out state until the next
+   scene's "in" starts, so there is never a flash of the wrong scene. */
+.sg-scene[data-phase] { animation-duration: var(--sg-cue-ms); animation-fill-mode: both; animation-timing-function: ease-in-out; }
+.sg-scene[data-transition="fade"][data-phase="out"] { animation-name: sg-fade-out; }
+.sg-scene[data-transition="fade"][data-phase="in"] { animation-name: sg-fade-in; }
+.sg-scene[data-transition="slide-left"][data-phase="out"] { animation-name: sg-to-left; }
+.sg-scene[data-transition="slide-left"][data-phase="in"] { animation-name: sg-from-right; }
+.sg-scene[data-transition="slide-right"][data-phase="out"] { animation-name: sg-to-right; }
+.sg-scene[data-transition="slide-right"][data-phase="in"] { animation-name: sg-from-left; }
+.sg-scene[data-transition="slide-up"][data-phase="out"] { animation-name: sg-to-top; }
+.sg-scene[data-transition="slide-up"][data-phase="in"] { animation-name: sg-from-bottom; }
+.sg-scene[data-transition="zoom"][data-phase="out"] { animation-name: sg-zoom-out; animation-timing-function: ease-in; }
+.sg-scene[data-transition="zoom"][data-phase="in"] { animation-name: sg-zoom-in; animation-timing-function: ease-out; }
+.sg-scene[data-transition="iris"][data-phase="out"] { animation-name: sg-iris-close; }
+.sg-scene[data-transition="iris"][data-phase="in"] { animation-name: sg-iris-open; }
+.sg-scene[data-transition="wipe"][data-phase="out"] { animation-name: sg-wipe-out; }
+.sg-scene[data-transition="wipe"][data-phase="in"] { animation-name: sg-wipe-in; }
+.sg-scene[data-effect="shake"] { animation: sg-quake var(--sg-cue-ms) linear; }
+
+/* Fade through black or white: a curtain over the stage. */
+.sg-curtain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #000;
+  animation: var(--sg-cue-ms) ease-in-out both;
+}
+.sg-curtain[data-color="white"] { background: #fff; }
+.sg-curtain[data-phase="out"] { animation-name: sg-fade-in; }
+.sg-curtain[data-phase="in"] { animation-name: sg-fade-out; }
+.sg-flash { position: absolute; inset: 0; pointer-events: none; background: #fff; animation: sg-flash var(--sg-cue-ms) ease-out both; }
+.sg-flash[data-color="black"] { background: #000; }
+
+/* Characters standing in the scene. Sprites are full-body and stand on the bottom edge;
+   portrait-only characters are shown as a bust, a little higher. */
+.sg-cast { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.sg-actor {
+  position: absolute;
+  bottom: 0;
+  width: calc(48 * var(--u));
+  height: 64%;
+  transform: translateX(-50%);
+  transition: left var(--sg-actor-ms) ease-in-out, filter 0.3s;
+  animation: var(--sg-actor-ms) ease-out both;
+}
+.sg-actor img { width: 100%; height: 100%; object-fit: contain; object-position: bottom; filter: drop-shadow(0 calc(1 * var(--u)) calc(2 * var(--u)) rgb(0 0 0 / 0.35)); }
+.sg-actor-bust { height: 34%; bottom: 22%; }
+.sg-actor[data-from="left"] { animation-name: sg-actor-from-left; }
+.sg-actor[data-from="right"] { animation-name: sg-actor-from-right; }
+.sg-actor[data-from="bottom"] { animation-name: sg-actor-from-bottom; }
+.sg-actor[data-from="fade"] { animation-name: sg-fade-in; }
+.sg-actor[data-leaving="left"] { animation-name: sg-actor-to-left; animation-timing-function: ease-in; }
+.sg-actor[data-leaving="right"] { animation-name: sg-actor-to-right; animation-timing-function: ease-in; }
+.sg-actor[data-leaving="bottom"] { animation-name: sg-actor-to-bottom; animation-timing-function: ease-in; }
+.sg-actor[data-leaving="fade"] { animation-name: sg-fade-out; }
+.sg-actor[data-dim] { filter: brightness(0.6) saturate(0.8); }
+
+/* Cutscene bars: they slide in while the scene's opening plays and leave on the player's turn. */
+.sg-letterbox { position: absolute; inset: 0; pointer-events: none; }
+.sg-letterbox::before, .sg-letterbox::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 7%;
+  background: #000;
+  transition: transform 0.6s ease-in-out;
+}
+.sg-letterbox::before { top: 0; transform: translateY(-100%); }
+.sg-letterbox::after { bottom: 0; transform: translateY(100%); }
+.sg-letterbox[data-on]::before, .sg-letterbox[data-on]::after { transform: none; }
+
+.sg-title-card {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: calc(2 * var(--u));
+  padding: calc(8 * var(--u));
+  text-align: center;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgb(0 0 0 / 0.55), transparent 70%);
+  animation: sg-title var(--sg-cue-ms) ease-in-out both;
+}
+.sg-title-text { margin: 0; font-family: var(--sg-font-display); font-size: 1.9em; font-weight: 700; letter-spacing: 0.04em; color: #fff; text-shadow: 0 calc(0.5 * var(--u)) calc(3 * var(--u)) #000; }
+.sg-title-sub { margin: 0; letter-spacing: 0.3em; text-transform: uppercase; font-size: 0.75em; color: var(--sg-accent); }
+
+/* Invisible, over the scene while a cue plays: a tap skips it. */
+.sg-skip-cue { position: absolute; inset: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+
+.sg-your-turn {
+  position: absolute;
+  left: 50%;
+  bottom: calc(8 * var(--u));
+  margin: 0;
+  padding: calc(2 * var(--u)) calc(4.5 * var(--u));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sg-surface) 88%, transparent);
+  border: calc(0.3 * var(--u)) solid var(--sg-accent);
+  font-size: 0.8em;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: sg-your-turn 2.4s ease-in-out both;
+}
+
 /* Ending */
 .sg-end {
   position: absolute;
@@ -327,9 +437,38 @@
 @keyframes sg-pulse { 0%, 100% { transform: scale(0.85); opacity: 0.55; } 50% { transform: scale(1.1); opacity: 1; } }
 @keyframes sg-turn { 0%, 30% { transform: rotate(-90deg); } 60%, 100% { transform: rotate(0); } }
 @keyframes sg-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sg-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes sg-to-left { to { transform: translateX(-100%); } }
+@keyframes sg-to-right { to { transform: translateX(100%); } }
+@keyframes sg-to-top { to { transform: translateY(-100%); } }
+@keyframes sg-from-left { from { transform: translateX(-100%); } }
+@keyframes sg-from-right { from { transform: translateX(100%); } }
+@keyframes sg-from-bottom { from { transform: translateY(100%); } }
+@keyframes sg-zoom-out { to { transform: scale(1.6); opacity: 0; } }
+@keyframes sg-zoom-in { from { transform: scale(1.25); opacity: 0; } }
+@keyframes sg-iris-close { from { clip-path: circle(75% at 50% 50%); } to { clip-path: circle(0% at 50% 50%); } }
+@keyframes sg-iris-open { from { clip-path: circle(0% at 50% 50%); } to { clip-path: circle(75% at 50% 50%); } }
+@keyframes sg-wipe-out { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 100% 0 0); } }
+@keyframes sg-wipe-in { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+@keyframes sg-quake {
+  10%, 50%, 90% { transform: translate(calc(-1.5 * var(--u)), calc(0.8 * var(--u))); }
+  30%, 70% { transform: translate(calc(1.5 * var(--u)), calc(-0.8 * var(--u))); }
+}
+@keyframes sg-flash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes sg-actor-from-left { from { transform: translateX(calc(-50% - 70 * var(--u))); } }
+@keyframes sg-actor-from-right { from { transform: translateX(calc(-50% + 70 * var(--u))); } }
+@keyframes sg-actor-from-bottom { from { transform: translate(-50%, 100%); opacity: 0; } }
+@keyframes sg-actor-to-left { to { transform: translateX(calc(-50% - 70 * var(--u))); } }
+@keyframes sg-actor-to-right { to { transform: translateX(calc(-50% + 70 * var(--u))); } }
+@keyframes sg-actor-to-bottom { to { transform: translate(-50%, 100%); opacity: 0; } }
+@keyframes sg-title { 0% { opacity: 0; transform: scale(0.96); } 20%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+@keyframes sg-your-turn { 0% { opacity: 0; transform: translate(-50%, 30%); } 15%, 80% { opacity: 1; transform: translateX(-50%); } 100% { opacity: 0; } }
 @keyframes sg-bob { 50% { transform: translateY(calc(0.8 * var(--u))); } }
 @keyframes sg-shake { 20%, 60% { transform: translateX(calc(-2 * var(--u))); } 40%, 80% { transform: translateX(calc(2 * var(--u))); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .sg-continue span, .sg-hotspot-marker, .sg-rotate-icon, .sg-shake, .sg-scene-art, .sg-puzzle, .sg-end { animation: none; }
+  .sg-continue span, .sg-hotspot-marker, .sg-rotate-icon, .sg-shake, .sg-puzzle, .sg-end,
+  .sg-scene[data-phase], .sg-scene[data-effect], .sg-curtain, .sg-flash, .sg-actor, .sg-your-turn { animation: none; }
+  .sg-actor[data-leaving] { visibility: hidden; }
+  .sg-letterbox::before, .sg-letterbox::after, .sg-actor { transition: none; }
 }

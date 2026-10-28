@@ -3,8 +3,14 @@
   "title": "Crossing",
   "background": "art/at-sea.svg",
   "music": "audio/waves.wav",
+  "enter": { "type": "fade-white", "ms": 1400 },
+  "exit": { "type": "fade-black", "ms": 1600 },
   "onEnter": [
+    { "do": "camera", "zoom": 1.35, "y": 1100, "ms": 0, "wait": false },
+    { "do": "enter", "character": "mira", "at": "center", "expression": "thinking", "from": "fade", "ms": 900, "wait": false },
+    { "do": "camera", "zoom": 1, "y": 960, "ms": 4000, "wait": false },
     { "do": "dialogue", "knot": "farewell" },
+    { "do": "wait", "ms": 700 },
     { "do": "end" }
   ]
 }
