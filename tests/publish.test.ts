@@ -46,7 +46,7 @@ describe("publishing", () => {
   it("re-publishing the same version is harmless; changing it without a new version is refused", async () => {
     expect((await pub(storyCopy("1.0.0"))).build.ok).toBe(true);
     await expect(pub(storyCopy("1.0.0", "The Very Last Ferry"))).rejects.toThrow(PublishError);
-    await expect(pub(storyCopy("1.0.0", "The Very Last Ferry"))).rejects.toThrow(/raise "version".*1\.0\.1/);
+    await expect(pub(storyCopy("1.0.0", "The Very Last Ferry"))).rejects.toThrow(/raise the version.*1\.0\.1/);
   });
 
   it("a new version goes to staging while live keeps the old one; rollback works", async () => {

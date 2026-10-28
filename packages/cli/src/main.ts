@@ -3,7 +3,7 @@ import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { buildStory, type BuildResult } from "./build.ts";
 import { SERIES_DIR, writeCatalog } from "./catalog.ts";
-import { SeriesSource } from "./source.ts";
+import { SeriesSource } from "@storygames/builder";
 import { CHANNELS, promote, publish, PublishError, rollback, status, unpublish, type Channel } from "./publish.ts";
 import { localStore, r2FromEnv, type ObjectStore } from "./store.ts";
 

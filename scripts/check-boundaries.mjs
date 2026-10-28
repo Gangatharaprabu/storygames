@@ -9,8 +9,9 @@ const ALLOWED = {
   puzzles: ["engine", "pack-spec"],
   ui: ["engine", "pack-spec"],
   player: ["engine", "pack-spec", "puzzles", "ui"],
-  studio: ["engine", "pack-spec", "puzzles", "ui"],
-  cli: ["pack-spec"],
+  builder: ["pack-spec"],
+  studio: ["builder", "engine", "pack-spec", "puzzles", "ui"],
+  cli: ["builder", "pack-spec"],
 };
 
 const root = resolve(import.meta.dirname, "..");

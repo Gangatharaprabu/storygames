@@ -2,14 +2,9 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSy
 import { dirname, extname, join, relative, sep } from "node:path";
 import { GetObjectCommand, HeadObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-/** Where published content lives: a key/value store of files (Cloudflare R2, or a local folder). */
-export interface ObjectStore {
-  readonly label: string;
-  get(key: string): Promise<Buffer | undefined>;
-  put(key: string, body: Buffer | string, cacheControl: string): Promise<void>;
-  exists(key: string): Promise<boolean>;
-  list(prefix: string): Promise<string[]>;
-}
+import type { ObjectStore } from "@storygames/builder";
+
+export type { ObjectStore };
 
 const TYPES: Record<string, string> = {
   ".json": "application/json; charset=utf-8",
