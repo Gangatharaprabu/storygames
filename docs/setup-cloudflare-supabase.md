@@ -71,10 +71,15 @@ GitHub → **Actions** → **Stories** → **Run workflow**:
 | Take it down | `unpublish` | the id | channel `live` (files are kept) |
 | See what's where | `status` | | |
 
-To publish the four sample stories: run `publish` for `fixtures/test-story`,
-`fixtures/island-lighthouse`, `fixtures/night-watch` and `fixtures/clockmakers-shop`, then
-`promote` `the-last-ferry`, `the-island-lighthouse`, `hanas-night-watch` and
-`the-clockmakers-shop`.
+Several stories can go in one run, separated by commas. To publish the four sample stories,
+one run of `publish` with story
+`fixtures/test-story, fixtures/island-lighthouse, fixtures/night-watch, fixtures/clockmakers-shop`,
+then one run of `promote` with
+`the-last-ferry, the-island-lighthouse, hanas-night-watch, the-clockmakers-shop`.
+
+Runs happen one at a time (so two can't change the story lists at once). If you start a new
+run while another is still waiting to start, GitHub cancels the waiting one: wait for a run to
+finish, or put several stories in one run.
 
 **Versions never change once published.** To fix a story, raise `"version"` in its
 `story.json` (e.g. `1.0.0` → `1.0.1`) and publish again; players who are mid-story keep

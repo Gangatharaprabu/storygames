@@ -1,5 +1,8 @@
 # Publish and manage stories from GitHub: Actions → "Stories" → Run workflow.
 # Needs the R2 secrets (see docs/setup-cloudflare-supabase.md).
+# Several stories can go in one run (separate them with commas or spaces). Runs happen one
+# at a time so two can't edit the story lists at once; if you start a run while another is
+# still waiting, GitHub cancels the older waiting one, so prefer one run with several stories.
 name: Stories
 
 on:
@@ -11,7 +14,7 @@ on:
         options: [status, publish, promote, rollback, unpublish]
         default: status
       story:
-        description: "publish: the story's folder (e.g. content/series/miras-journey/01-the-last-ferry). Others: the story id (e.g. the-last-ferry)"
+        description: "publish: story folder(s), e.g. fixtures/test-story, fixtures/night-watch. promote/unpublish: story id(s), e.g. the-last-ferry, hanas-night-watch. rollback: one story id"
         required: false
       channel:
         description: "Channel (publish defaults to staging; rollback/unpublish default to live)"
@@ -50,19 +53,32 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          args=("$ACTION")
-          if [ "$ACTION" != "status" ]; then
-            [ -n "$STORY" ] || { echo "::error::'story' is required for $ACTION"; exit 1; }
-            args+=("$STORY")
+          run() { echo "::group::storygames $*"; node packages/cli/bin/storygames.mjs "$@"; echo "::endgroup::"; }
+          channel=()
+          [ "$CHANNEL" = "default" ] || channel=(--channel "$CHANNEL")
+
+          if [ "$ACTION" = "status" ]; then
+            node packages/cli/bin/storygames.mjs status
+            exit 0
           fi
-          if [ "$ACTION" = "publish" ]; then
-            case "$STORY" in fixtures/*) lib=fixtures/library ;; *) lib=content/library ;; esac
-            args+=(--library "$lib")
-          fi
-          [ "$CHANNEL" = "default" ] || args+=(--channel "$CHANNEL")
-          if [ "$ACTION" = "unpublish" ] && [ "$CHANNEL" = "default" ]; then args+=(--channel live); fi
-          if [ "$ACTION" = "rollback" ]; then
-            [ -n "$VERSION" ] || { echo "::error::'version' is required for rollback"; exit 1; }
-            args+=(--to "$VERSION")
-          fi
-          node packages/cli/bin/storygames.mjs "${args[@]}"
+          read -r -a items <<< "${STORY//,/ }"
+          [ "${#items[@]}" -gt 0 ] || { echo "::error::'story' is required for $ACTION"; exit 1; }
+
+          case "$ACTION" in
+            publish)
+              for dir in "${items[@]}"; do
+                case "$dir" in fixtures/*) lib=fixtures/library ;; *) lib=content/library ;; esac
+                run publish "$dir" --library "$lib" "${channel[@]}"
+              done ;;
+            promote)
+              for id in "${items[@]}"; do run promote "$id"; done ;;
+            unpublish)
+              [ "$CHANNEL" = "default" ] && channel=(--channel live)
+              for id in "${items[@]}"; do run unpublish "$id" "${channel[@]}"; done ;;
+            rollback)
+              [ "${#items[@]}" -eq 1 ] || { echo "::error::rollback takes one story id"; exit 1; }
+              [ -n "$VERSION" ] || { echo "::error::'version' is required for rollback"; exit 1; }
+              run rollback "${items[0]}" --to "$VERSION" "${channel[@]}" ;;
+          esac
+          echo
+          node packages/cli/bin/storygames.mjs status
