@@ -1,0 +1,33 @@
+{
+  "name": "@storygames/studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p .",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@storygames/builder": "workspace:*",
+    "@storygames/engine": "workspace:*",
+    "@storygames/pack-spec": "workspace:*",
+    "@storygames/puzzles": "workspace:*",
+    "@storygames/ui": "workspace:*",
+    "@supabase/supabase-js": "^2.118.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "vite": "^8.0.0"
+  }
+}

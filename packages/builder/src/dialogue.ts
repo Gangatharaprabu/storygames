@@ -16,7 +16,7 @@ export type DialogueStep =
   | { type: "if"; flag: string; equals: FlagValue; then: DialogueStep[]; else: DialogueStep[] }
   | { type: "goto"; conversation: string };
 
-export const DialogueStep: z.ZodType<DialogueStep> = z.lazy(() =>
+export const DialogueStep: z.ZodType<DialogueStep, DialogueStep> = z.lazy(() =>
   z.discriminatedUnion("type", [
     z.object({
       type: z.literal("line"),

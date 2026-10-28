@@ -45,7 +45,7 @@ const ext = (p: string) => /\.[^./]+$/.exec(p)?.[0] ?? "";
 const base = (p: string) => p.split("/").pop()!;
 
 /** Story source folder + character library → Story Pack (plus the list of files it needs). */
-export async function buildPack(src: { story: SourceFolder; library: SourceFolder }): Promise<PackBuild> {
+export async function buildPack(src: { story: SourceFolder; library: SourceFolder }, opts: { draft?: boolean } = {}): Promise<PackBuild> {
   const errors: Problem[] = [];
   const warnings: Problem[] = [];
   const fail = (path: string, message: string): PackBuild => ({ ok: false, assets: [], errors: [...errors, { path, message }], warnings });
@@ -59,7 +59,14 @@ export async function buildPack(src: { story: SourceFolder; library: SourceFolde
     return fail("story", (e as Error).message);
   }
 
-  const scenes = await readFolder(src.story, "scenes/", Scene, errors);
+  // Hotspots still being set up (nothing happens when tapped) are left out of a draft, and stop a publish.
+  const scenes = (await readFolder(src.story, "scenes/", Scene, errors)).map((sc) => {
+    const empty = sc.hotspots.filter((h) => !h.actions.length);
+    for (const h of empty) {
+      (opts.draft ? warnings : errors).push({ path: `scenes/${sc.id}.json`, message: `the hotspot "${h.label}" does nothing yet: add a step or delete it` });
+    }
+    return empty.length ? { ...sc, hotspots: sc.hotspots.filter((h) => h.actions.length) } : sc;
+  });
   const puzzles = await readFolder(src.story, "puzzles/", Puzzle, errors);
 
   // Characters: snapshot the chosen variant of each cast member from the library.
@@ -124,7 +131,7 @@ export async function buildPack(src: { story: SourceFolder; library: SourceFolde
     narrative: ink,
   };
 
-  const result = validatePack(input);
+  const result = validatePack(input, { draft: opts.draft });
   warnings.push(...result.warnings);
   if (!result.ok) return { ok: false, assets: [], errors: result.errors, warnings };
 

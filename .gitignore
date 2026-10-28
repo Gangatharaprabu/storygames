@@ -14,3 +14,4 @@ playwright-report/
 # Local publishing tests
 .storage/
 .storage-dist/
+.storage-e2e/

@@ -3,16 +3,18 @@
 A harness for short (5–10 minute) narrative puzzle games: point-and-click, portrait,
 anime-styled, with characters that live independently of stories and appear across them.
 
-Stories are **data**. The engine never changes per story: you write a story folder,
-the CLI builds it into a **Story Pack**, and the player app plays packs.
+Stories are **data**. The engine never changes per story: you write a story (in the
+**Studio**, or as a folder of files), it's built into a **Story Pack**, and the player app
+plays packs.
 
 ```
-Story source ──storygames build──▶ Story Pack ──▶ Player (web, later iOS/Android)
-(you write)                        (pack.json + art)
+Studio or story folder ──build + publish──▶ Story Pack ──▶ Player (web, later iOS/Android)
+(you write)                                 (pack.json + art)
 ```
 
-See [docs/architecture.md](docs/architecture.md) for the design and
-[docs/writing-stories.md](docs/writing-stories.md) for how to write a story.
+See [docs/studio.md](docs/studio.md) for writing and publishing in the Studio,
+[docs/architecture.md](docs/architecture.md) for the design and
+[docs/writing-stories.md](docs/writing-stories.md) for the story format.
 
 ## Quick start
 
@@ -53,7 +55,9 @@ packages/
   player/      the app: home, search, story / series / character pages, my stories,
                profile, sharing, and play
                (web now; wrapped with Capacitor later)
-  cli/         storygames build | validate (publish comes in Milestone 3)
+  builder/     story source → Story Pack, visual dialogue → ink, publishing (runs anywhere)
+  studio/      the Studio: write, play and publish stories in the browser (docs/studio.md)
+  cli/         storygames build | validate | publish | promote | studio-import …
 content/       your stories and characters (see content/README.md)
 fixtures/
   library/     a tiny character library (Mira, Tomo)

@@ -11,10 +11,10 @@ on:
       action:
         description: What to do
         type: choice
-        options: [status, publish, promote, rollback, unpublish]
+        options: [status, publish, promote, rollback, unpublish, copy-to-studio]
         default: status
       story:
-        description: "publish: story folder(s), e.g. fixtures/test-story, fixtures/night-watch. promote/unpublish: story id(s), e.g. the-last-ferry, hanas-night-watch. rollback: one story id"
+        description: "publish / copy-to-studio: story folder(s), e.g. fixtures/test-story, fixtures/night-watch. promote/unpublish: story id(s), e.g. the-last-ferry, hanas-night-watch. rollback: one story id"
         required: false
       channel:
         description: "Channel (publish defaults to staging; rollback/unpublish default to live)"
@@ -69,6 +69,11 @@ jobs:
               for dir in "${items[@]}"; do
                 case "$dir" in fixtures/*) lib=fixtures/library ;; *) lib=content/library ;; esac
                 run publish "$dir" --library "$lib" "${channel[@]}"
+              done ;;
+            copy-to-studio)
+              for dir in "${items[@]}"; do
+                case "$dir" in fixtures/*) lib=fixtures/library ;; *) lib=content/library ;; esac
+                run studio-import "$dir" --library "$lib"
               done ;;
             promote)
               for id in "${items[@]}"; do run promote "$id"; done ;;

@@ -30,7 +30,7 @@ function localContent(): Plugin {
     if (!req.url?.startsWith("/content/")) return next();
     const key = decodeURIComponent(req.url.slice("/content/".length).split("?")[0]!);
     const file = join(root, key);
-    if (key.includes("..") || key.startsWith("channels/") || !existsSync(file)) {
+    if (key.includes("..") || !["packs/", "series/", "catalogs/"].some((p) => key.startsWith(p)) || !existsSync(file)) {
       res.statusCode = 404;
       return res.end("Not found");
     }

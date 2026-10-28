@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CastMember, FlagValue, Id, Item, Puzzle, Scene, Theme } from "@storygames/pack-spec";
+import { Action, CastMember, FlagValue, Hotspot, Id, Item, Puzzle, Scene as PackScene, Theme } from "@storygames/pack-spec";
 
 /**
  * Authoring formats: what you write in the content repo. The build turns these
@@ -51,7 +51,12 @@ export const StorySource = z.object({
   narrative: z.string().default("main.ink"),
 });
 
-export { Theme, Scene, Puzzle };
+export { Theme, Puzzle };
+
+/** scenes/<id>.json. Like a pack's scene, but a hotspot may have no steps yet (the build says so). */
+export const Scene = PackScene.extend({
+  hotspots: z.array(Hotspot.extend({ actions: z.array(Action) })).default([]),
+});
 
 /** <anywhere>/series.json — describes a series; its episodes say `"series": { "id": … }`. */
 export const SeriesSource = z.object({

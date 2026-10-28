@@ -1,4 +1,4 @@
-# Deploys the app to Cloudflare Pages on every push.
+# Deploys the player app and the Studio to Cloudflare Pages on every push.
 # The production branch (set in the Pages project) goes to https://storygames.pages.dev,
 # every other branch gets its own preview address.
 # Skips itself until the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets exist
@@ -65,4 +65,45 @@ jobs:
       - name: Deploy
         if: steps.ready.outputs.ok == 'true'
         working-directory: packages/player
+        run: npx --yes wrangler@4 pages deploy --branch="${{ github.ref_name }}" --commit-dirty=true
+
+      # ---- The Studio (writing and publishing stories): its own Pages project ----
+      - name: Build the Studio
+        if: steps.ready.outputs.ok == 'true'
+        working-directory: packages/studio
+        env:
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          VITE_PLAYER_URL: ${{ vars.PLAYER_URL || 'https://storygames-6gy.pages.dev' }}
+        run: pnpm exec vite build
+
+      - name: Studio settings for its server side
+        if: steps.ready.outputs.ok == 'true'
+        working-directory: packages/studio
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          STUDIO_AUTHORS: ${{ vars.STUDIO_AUTHORS }}
+        run: |
+          if [ -z "$STUDIO_AUTHORS" ]; then
+            echo "::warning::No STUDIO_AUTHORS variable yet: nobody can sign in to the Studio. Add your email (Settings → Secrets and variables → Actions → Variables)."
+          fi
+          # JSON strings are valid TOML strings.
+          q() { node -e 'process.stdout.write(JSON.stringify(process.argv[1] ?? ""))' "$1"; }
+          {
+            echo ""
+            echo "[vars]"
+            echo "SUPABASE_URL = $(q "$SUPABASE_URL")"
+            echo "SUPABASE_ANON_KEY = $(q "$SUPABASE_ANON_KEY")"
+            echo "STUDIO_AUTHORS = $(q "$STUDIO_AUTHORS")"
+          } >> wrangler.toml
+
+      - name: Create the Studio's Pages project the first time
+        if: steps.ready.outputs.ok == 'true'
+        working-directory: packages/studio
+        run: npx --yes wrangler@4 pages project create storygames-studio --production-branch="${{ github.event.repository.default_branch }}" || true
+
+      - name: Deploy the Studio
+        if: steps.ready.outputs.ok == 'true'
+        working-directory: packages/studio
         run: npx --yes wrangler@4 pages deploy --branch="${{ github.ref_name }}" --commit-dirty=true

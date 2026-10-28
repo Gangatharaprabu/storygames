@@ -6,6 +6,7 @@ import { SERIES_DIR, writeCatalog } from "./catalog.ts";
 import { SeriesSource } from "@storygames/builder";
 import { CHANNELS, promote, publish, PublishError, rollback, status, unpublish, type Channel } from "./publish.ts";
 import { localStore, r2FromEnv, type ObjectStore } from "./store.ts";
+import { importToStudio } from "./studio-import.ts";
 
 // Keys for R2 can live in a git-ignored .env file next to package.json.
 for (const f of [".env.local", ".env"]) {
@@ -36,7 +37,9 @@ Publishing (to Cloudflare R2 from R2_* env vars / .env, or a local folder with -
              point a channel back at an earlier version
   unpublish <story-id> --channel <staging|live>
              take a story out of a channel (its files are kept)
-  status     every story's staging and live version`;
+  status     every story's staging and live version
+  studio-import <story-dir> --library <dir>
+             copy a story (and its characters and series) into the Studio's drafts`;
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -52,7 +55,7 @@ const { positionals, values } = parseArgs({
 });
 
 const [command, storyDir] = positionals;
-if (command && ["publish", "promote", "rollback", "unpublish", "status"].includes(command)) {
+if (command && ["publish", "promote", "rollback", "unpublish", "status", "studio-import"].includes(command)) {
   process.exit(await publishing(command, storyDir));
 }
 if (command === "catalog" && storyDir) {
@@ -205,6 +208,13 @@ async function publishing(cmd: string, arg: string | undefined): Promise<number>
         }
         console.log(`✓ ${r.story} ${r.version} is in ${channel}`);
         if (channel === "staging") console.log(`  Check it on the staging site, then: storygames promote ${r.story}`);
+        return 0;
+      }
+      case "studio-import": {
+        if (!arg || !values.library) return usage();
+        console.log(`Copying ${arg} into the Studio (${store.label})`);
+        const id = await importToStudio({ store, storyDir: arg, libraryDir: values.library, seriesRoots: [resolve(values.library, "..")], log: console.log });
+        console.log(`✓ ${id} is in the Studio`);
         return 0;
       }
       case "promote": {

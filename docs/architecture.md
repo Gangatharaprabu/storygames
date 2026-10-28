@@ -31,11 +31,14 @@ Enforced by `scripts/check-boundaries.mjs` (part of `pnpm check`).
 | puzzles | engine, pack-spec |
 | ui | engine, pack-spec |
 | player | engine, pack-spec, puzzles, ui |
-| studio (later) | engine, pack-spec, puzzles, ui |
-| cli | pack-spec |
+| builder | pack-spec |
+| studio | builder, engine, pack-spec, puzzles, ui |
+| cli | builder, pack-spec |
 
 `player` and `studio` never import each other. The engine is headless, so the same session
-runs in the player, in Studio preview and in tests.
+runs in the player, in Studio preview and in tests. The **builder** turns story source into a
+Story Pack and publishes it; it reads files through a small folder interface, so the CLI runs
+it on the repo and the Studio runs it in the browser on its drafts (see [studio.md](studio.md)).
 
 ## The app
 

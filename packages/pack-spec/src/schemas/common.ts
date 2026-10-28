@@ -29,7 +29,7 @@ export type Condition =
  * When something applies. `{ flag }` alone means "flag is truthy".
  * Used by hotspots, layers and actions alike, so there is one condition language everywhere.
  */
-export const Condition: z.ZodType<Condition> = z.lazy(() =>
+export const Condition: z.ZodType<Condition, Condition> = z.lazy(() =>
   z.union([
     z.object({ flag: z.string(), is: FlagValue.optional() }).strict(),
     z.object({ has: Id }).strict(),

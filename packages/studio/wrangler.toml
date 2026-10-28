@@ -1,0 +1,11 @@
+# Cloudflare Pages project for the Studio (writing and publishing stories).
+# Deployed by .github/workflows/cloudflare.yml. The deploy step appends a [vars] section
+# with SUPABASE_URL, SUPABASE_ANON_KEY and STUDIO_AUTHORS from the repository's variables.
+name = "storygames-studio"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+# The same bucket the player reads: drafts under studio/, published stories beside them.
+[[r2_buckets]]
+binding = "CONTENT"
+bucket_name = "storygames-content"

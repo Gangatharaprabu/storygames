@@ -17,7 +17,15 @@ export type ValidationResult =
  * knot and character mentioned exists) and structure (the ending is reachable and
  * no reachable scene is a dead end).
  */
-export function validatePack(input: unknown): ValidationResult {
+export interface ValidateOptions {
+  /**
+   * A story still being written (playing it in the Studio): what it lacks to be finished
+   * (an ending, a main character) is a warning instead of an error.
+   */
+  draft?: boolean;
+}
+
+export function validatePack(input: unknown, opts: ValidateOptions = {}): ValidationResult {
   const parsed = StoryPack.safeParse(input);
   if (!parsed.success) {
     return {
@@ -29,6 +37,7 @@ export function validatePack(input: unknown): ValidationResult {
   const pack = parsed.data;
   const errors: Problem[] = [];
   const warnings: Problem[] = [];
+  const unfinished = opts.draft ? warnings : errors;
 
   if (pack.manifest.packFormat !== PACK_FORMAT) {
     errors.push({ path: "manifest.packFormat", message: `expected ${PACK_FORMAT}, got ${pack.manifest.packFormat}` });
@@ -50,7 +59,7 @@ export function validatePack(input: unknown): ValidationResult {
     }
   }
   if (pack.cast.filter((m) => m.role === "protagonist").length !== 1) {
-    errors.push({ path: "cast", message: "a story needs exactly one protagonist" });
+    unfinished.push({ path: "cast", message: "a story needs exactly one main character (protagonist)" });
   }
   for (const c of pack.characters) {
     if (!c.portraits[c.defaultExpression]) {
@@ -132,7 +141,7 @@ export function validatePack(input: unknown): ValidationResult {
     }
   }
 
-  if (errors.length === 0) checkStructure(pack, errors, warnings);
+  if (errors.length === 0) checkStructure(pack, unfinished, warnings);
 
   return errors.length ? { ok: false, errors, warnings } : { ok: true, pack, warnings };
 }

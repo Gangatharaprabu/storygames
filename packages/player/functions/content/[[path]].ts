@@ -4,7 +4,10 @@
  *   GET /content/packs/<story>/<ver>/…       → R2 key packs/<story>/<ver>/…
  * Same origin as the app (no CORS), cached at Cloudflare's edge using the cache headers
  * the publisher stored with each file (versioned packs: a year; catalogs: a minute).
+ * Only published content is served: the Studio's drafts (studio/…) share the bucket and stay private.
  */
+
+const PUBLIC = ["packs/", "series/", "catalogs/"];
 
 interface R2Object {
   body: ReadableStream;
@@ -24,7 +27,7 @@ export async function onRequestGet({ request, env, params }: Context): Promise<R
   if (!env.CONTENT) return new Response("Story storage isn't connected (R2 binding CONTENT missing).", { status: 503 });
   const parts = Array.isArray(params.path) ? params.path : params.path ? [params.path] : [];
   const key = parts.map(decodeURIComponent).join("/");
-  if (!key || key.includes("..") || key.startsWith("channels/")) return new Response("Not found", { status: 404 });
+  if (!key || key.includes("..") || !PUBLIC.some((p) => key.startsWith(p))) return new Response("Not found", { status: 404 });
 
   const object = await env.CONTENT.get(key, { onlyIf: request.headers });
   if (!object) return new Response("Not found", { status: 404 });
