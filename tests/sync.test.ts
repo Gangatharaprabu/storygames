@@ -154,3 +154,13 @@ it("a brand-new profile merges cleanly with an empty account", () => {
   const p = newProfile(at(0));
   expect(mergeProfiles(p, p)).toEqual({ ...p });
 });
+
+describe("sign-in error messages", async () => {
+  const { friendly } = await import("../packages/player/src/data/account.ts");
+  it("only blames the code when verifying a code", () => {
+    expect(friendly("verify", "Token has expired or is invalid")).toMatch(/code didn't work/);
+    expect(friendly("send", "Invalid API key")).toMatch(/key was rejected: Invalid API key/);
+    expect(friendly("send", "Error sending magic link email")).toBe("Couldn't send the code: Error sending magic link email");
+    expect(friendly("send", "For security purposes, you can only request this after 52 seconds.")).toMatch(/wait a minute/);
+  });
+});

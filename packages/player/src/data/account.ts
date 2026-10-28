@@ -50,14 +50,14 @@ export class Account {
       email,
       options: { shouldCreateUser: true, emailRedirectTo: location.href.split("?")[0]!.split("#")[0] + "#/profile" },
     });
-    if (error) throw new Error(friendly(error.message));
+    if (error) throw new Error(friendly("send", error.message));
   }
 
   /** Step 2: the code from the email. */
   async verifyCode(email: string, code: string) {
     const sb = await this.connect();
     const { error } = await sb.auth.verifyOtp({ email, token: code.trim(), type: "email" });
-    if (error) throw new Error(friendly(error.message));
+    if (error) throw new Error(friendly("verify", error.message));
   }
 
   /** Sign out. Everything stays on this device; it just stops syncing. */
@@ -120,9 +120,13 @@ function safeLocalStorage(): Storage | Record<string, never> {
   }
 }
 
-function friendly(message: string) {
-  if (/expired|invalid/i.test(message)) return "That code didn't work. It may have expired: send a new one.";
-  if (/rate limit|too many/i.test(message)) return "Too many tries. Please wait a minute and try again.";
-  if (/fetch|network/i.test(message)) return "Can't reach the server. Check your connection.";
-  return message;
+/** Player-friendly wording for the common cases; anything else is shown as Supabase said it. */
+export function friendly(step: "send" | "verify", message: string) {
+  if (/rate limit|too many|security purposes/i.test(message)) return "Too many tries. Please wait a minute and try again.";
+  if (/fetch|network|load failed/i.test(message)) return "Can't reach the server. Check your connection.";
+  if (step === "verify" && /expired|invalid|not found/i.test(message)) {
+    return "That code didn't work. It may have expired: send a new one.";
+  }
+  if (/api key|apikey|jwt/i.test(message)) return `Sign-in isn't set up correctly (the app's Supabase key was rejected: ${message}).`;
+  return step === "send" ? `Couldn't send the code: ${message}` : `Couldn't sign in: ${message}`;
 }
